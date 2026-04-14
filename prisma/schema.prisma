@@ -1,0 +1,10 @@
+// Prisma schema — Neon Postgres.
+// Full models added in Phase 1.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
