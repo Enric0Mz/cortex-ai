@@ -1,10 +1,74 @@
-// Prisma schema — Neon Postgres.
-// Full models added in Phase 1.
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  name         String?
+  avatarUrl    String?      @map("avatar_url")
+  authProvider String       @default("google") @map("auth_provider")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  comparisons  Comparison[]
+  votes        Vote[]
+
+  @@map("users")
+}
+
+model Comparison {
+  id        String     @id @default(uuid())
+  userId    String     @map("user_id")
+  prompt    String
+  category  String?
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  responses Response[]
+  votes     Vote[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([category])
+  @@map("comparisons")
+}
+
+model Response {
+  id           String     @id @default(uuid())
+  comparisonId String     @map("comparison_id")
+  provider     String
+  model        String
+  content      String
+  inputTokens  Int        @map("input_tokens")
+  outputTokens Int        @map("output_tokens")
+  costUsd      Float      @map("cost_usd")
+  latencyMs    Int        @map("latency_ms")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  comparison   Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  votes        Vote[]
+
+  @@index([comparisonId])
+  @@index([model])
+  @@map("responses")
+}
+
+model Vote {
+  id           String     @id @default(uuid())
+  comparisonId String     @map("comparison_id")
+  responseId   String     @map("response_id")
+  userId       String     @map("user_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  comparison   Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  response     Response   @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([comparisonId, userId])
+  @@index([responseId])
+  @@map("votes")
 }
