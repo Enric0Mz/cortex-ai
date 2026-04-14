@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
-import { AppError, ServiceUnavailableError } from "@/lib/errors";
+import { ServiceUnavailableError } from "@/lib/errors";
+import { tryCatch, type Result } from "@/lib/result";
 
 interface DatabaseHealth {
   status: "up" | "down";
@@ -17,6 +18,11 @@ interface HealthResponse {
   database: DatabaseHealth;
 }
 
+interface DatabaseStats {
+  version: string;
+  openConnections: number;
+}
+
 interface VersionRow {
   server_version: string;
 }
@@ -25,33 +31,29 @@ interface ConnectionsRow {
   count: bigint;
 }
 
-type DatabaseStatsResult =
-  | { ok: true; version: string; openConnections: number }
-  | { ok: false; error: AppError };
-
-function fetchDatabaseStats(): Promise<DatabaseStatsResult> {
-  return Promise.all([
-    prisma.$queryRaw<VersionRow[]>`SHOW server_version`,
-    prisma.$queryRaw<ConnectionsRow[]>`
-      SELECT count(*)::bigint AS count
-      FROM pg_stat_activity
-      WHERE datname = current_database()
-    `,
-  ])
-    .then(([versionRows, connectionRows]) => ({
-      ok: true as const,
-      version: versionRows[0]?.server_version ?? "unknown",
-      openConnections: Number(connectionRows[0]?.count ?? 0),
-    }))
-    .catch((cause: unknown) => ({
-      ok: false as const,
-      error: new ServiceUnavailableError("database", cause),
-    }));
+async function fetchDatabaseStats(): Promise<Result<DatabaseStats, ServiceUnavailableError>> {
+  return tryCatch(
+    async () => {
+      const [versionRows, connectionRows] = await Promise.all([
+        prisma.$queryRaw<VersionRow[]>`SHOW server_version`,
+        prisma.$queryRaw<ConnectionsRow[]>`
+          SELECT count(*)::bigint AS count
+          FROM pg_stat_activity
+          WHERE datname = current_database()
+        `,
+      ]);
+      return {
+        version: versionRows[0]?.server_version ?? "unknown",
+        openConnections: Number(connectionRows[0]?.count ?? 0),
+      };
+    },
+    (cause) => new ServiceUnavailableError("database", cause),
+  );
 }
 
 export default async function handler(
   _req: NextApiRequest,
-  res: NextApiResponse<HealthResponse>
+  res: NextApiResponse<HealthResponse>,
 ): Promise<void> {
   const start = Date.now();
   const result = await fetchDatabaseStats();
@@ -59,8 +61,8 @@ export default async function handler(
 
   const database: DatabaseHealth = {
     status: result.ok ? "up" : "down",
-    version: result.ok ? result.version : null,
-    openConnections: result.ok ? result.openConnections : null,
+    version: result.ok ? result.value.version : null,
+    openConnections: result.ok ? result.value.openConnections : null,
     latencyMs,
     error: result.ok ? null : result.error.message,
   };
