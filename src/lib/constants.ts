@@ -1,0 +1,4 @@
+export const MIN_MODELS_PER_COMPARISON = 2;
+export const MAX_MODELS_PER_COMPARISON = 4;
+export const HISTORY_PAGE_SIZE = 10;
+export const ROTATING_TEXT_INTERVAL_MS = 3000;
