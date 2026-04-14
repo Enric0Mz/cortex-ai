@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Cortex AI (local)",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "cortex_ai",
+      "Username": "cortex",
+      "SSLMode": "prefer"
+    }
+  }
+}
