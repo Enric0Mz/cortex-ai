@@ -41,3 +41,16 @@ export class ServiceUnavailableError extends AppError {
     }
   }
 }
+
+export class ProviderError extends AppError {
+  constructor(
+    public provider: string,
+    message: string,
+    cause?: unknown,
+  ) {
+    super(`${provider}: ${message}`, 502, "PROVIDER_ERROR");
+    if (cause !== undefined) {
+      this.cause = cause;
+    }
+  }
+}
