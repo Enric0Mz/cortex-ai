@@ -8,7 +8,7 @@ import type {
   DatabaseStats,
   HealthResponse,
   VersionRow,
-} from "@/health/types";
+} from "@/health/schemas";
 
 async function fetchDatabaseStats(): Promise<
   Result<DatabaseStats, ServiceUnavailableError>

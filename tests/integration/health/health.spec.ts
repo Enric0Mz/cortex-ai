@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import type { HealthResponse } from "@/health/types";
+import type { HealthResponse } from "@/health/schemas";
 import {
   disableDatabaseConnections,
   enableDatabaseConnections,
