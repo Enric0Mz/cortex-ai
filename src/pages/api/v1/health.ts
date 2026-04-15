@@ -2,36 +2,17 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { ServiceUnavailableError } from "@/lib/errors";
 import { tryCatch, type Result } from "@/lib/result";
+import type {
+  ConnectionsRow,
+  DatabaseHealth,
+  DatabaseStats,
+  HealthResponse,
+  VersionRow,
+} from "@/health/types";
 
-interface DatabaseHealth {
-  status: "up" | "down";
-  version: string | null;
-  openConnections: number | null;
-  latencyMs: number;
-  error: string | null;
-}
-
-interface HealthResponse {
-  status: "ok" | "degraded";
-  uptimeSeconds: number;
-  timestamp: string;
-  database: DatabaseHealth;
-}
-
-interface DatabaseStats {
-  version: string;
-  openConnections: number;
-}
-
-interface VersionRow {
-  server_version: string;
-}
-
-interface ConnectionsRow {
-  count: bigint;
-}
-
-async function fetchDatabaseStats(): Promise<Result<DatabaseStats, ServiceUnavailableError>> {
+async function fetchDatabaseStats(): Promise<
+  Result<DatabaseStats, ServiceUnavailableError>
+> {
   return tryCatch(
     async () => {
       const [versionRows, connectionRows] = await Promise.all([
