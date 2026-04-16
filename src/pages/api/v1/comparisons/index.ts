@@ -5,7 +5,7 @@ import { tryCatch, type Result } from "@/lib/result";
 import {
   CreateComparisonRequestSchema,
   type ComparisonResult,
-} from "@/comparison/schemas";
+} from "@/features/comparison/schemas";
 import type { ErrorResponse } from "@/openapi/common";
 import { runComparison } from "@/features/comparison/domain";
 import parseBody from "@/lib/parse";

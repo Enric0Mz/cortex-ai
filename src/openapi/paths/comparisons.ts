@@ -3,7 +3,7 @@ import { ErrorResponseSchema } from "@/openapi/common";
 import {
   ComparisonResultSchema,
   CreateComparisonRequestSchema,
-} from "@/comparison/schemas";
+} from "@/features/comparison/schemas";
 
 registry.registerPath({
   method: "post",

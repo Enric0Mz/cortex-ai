@@ -1,7 +1,7 @@
 import { PROVIDER_MODELS } from "@/lib/constants";
 import { ProviderError } from "@/lib/errors";
 import { tryCatch } from "@/lib/result";
-import type { ProviderResult } from "@/comparison/schemas";
+import type { ProviderResult } from "@/features/comparison/schemas";
 import type { ProviderAdapter } from "../types";
 
 interface GeminiResponse {
@@ -36,9 +36,7 @@ export function geminiAdapter(apiKey: string): ProviderAdapter {
 
           if (!response.ok) {
             const body = await response.text();
-            throw new Error(
-              `HTTP ${response.status}: ${body.slice(0, 200)}`,
-            );
+            throw new Error(`HTTP ${response.status}: ${body.slice(0, 200)}`);
           }
 
           const data = (await response.json()) as GeminiResponse;

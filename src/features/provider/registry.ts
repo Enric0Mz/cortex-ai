@@ -1,5 +1,5 @@
 import { env } from "@/lib/env";
-import type { ProviderId } from "@/comparison/schemas";
+import type { ProviderId } from "@/features/comparison/schemas";
 import type { ProviderAdapter } from "./types";
 import { geminiAdapter } from "./adapters/gemini";
 import { groqAdapter } from "./adapters/groq";

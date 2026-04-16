@@ -4,7 +4,7 @@ import { tryCatch, type Result } from "@/lib/result";
 import {
   type CreateComparisonRequest,
   type ProviderId,
-} from "@/comparison/schemas";
+} from "@/features/comparison/schemas";
 
 export async function CreateComparison(
   userId: string,
@@ -26,7 +26,7 @@ export async function CreateComparison(
   );
 }
 
-export async function persistSuccessfulResponses(
+export async function CreateComparisonResponse(
   comparisonId: string,
   results: Array<{
     provider: ProviderId;

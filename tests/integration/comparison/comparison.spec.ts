@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 import {
   ComparisonResult,
   CreateComparisonRequest,
-} from "@/comparison/schemas";
+} from "@/features/comparison/schemas";
 
 test.describe("Comparison route tests", () => {
   test("Comparing 4 models should return an array with 4 results", async ({

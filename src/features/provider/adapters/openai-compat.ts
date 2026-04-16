@@ -1,6 +1,6 @@
 import { ProviderError } from "@/lib/errors";
 import { tryCatch } from "@/lib/result";
-import type { ProviderId, ProviderResult } from "@/comparison/schemas";
+import type { ProviderId, ProviderResult } from "@/features/comparison/schemas";
 import type { ProviderAdapter } from "../types";
 
 interface OpenAICompatConfig {
@@ -45,9 +45,7 @@ export function openAIChatAdapter(config: OpenAICompatConfig): ProviderAdapter {
 
           if (!response.ok) {
             const body = await response.text();
-            throw new Error(
-              `HTTP ${response.status}: ${body.slice(0, 200)}`,
-            );
+            throw new Error(`HTTP ${response.status}: ${body.slice(0, 200)}`);
           }
 
           const data = (await response.json()) as OpenAIChatResponse;

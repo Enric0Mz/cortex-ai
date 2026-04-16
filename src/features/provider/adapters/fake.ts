@@ -1,7 +1,7 @@
 import { PROVIDER_MODELS } from "@/lib/constants";
 import { ProviderError } from "@/lib/errors";
 import { ok, err } from "@/lib/result";
-import type { ProviderId } from "@/comparison/schemas";
+import type { ProviderId } from "@/features/comparison/schemas";
 import type { ProviderAdapter } from "../types";
 
 // Deterministic in-process adapter used when USE_FAKE_PROVIDERS=true.

@@ -5,9 +5,9 @@ import {
   type ComparisonResponseItem,
   type ComparisonResult,
   type CreateComparisonRequest,
-} from "@/comparison/schemas";
+} from "@/features/comparison/schemas";
 import { buildAdapters } from "@/features/provider/registry";
-import { CreateComparison, persistSuccessfulResponses } from "./repository";
+import { CreateComparison, CreateComparisonResponse } from "./repository";
 
 export async function runComparison(
   userId: string,
@@ -30,10 +30,7 @@ export async function runComparison(
   const successes = settled.flatMap((entry) =>
     entry.result.ok ? [entry.result.value] : [],
   );
-  const persistResult = await persistSuccessfulResponses(
-    comparisonId,
-    successes,
-  );
+  const persistResult = await CreateComparisonResponse(comparisonId, successes);
   if (!persistResult.ok) return err(persistResult.error);
   const idsByProvider = persistResult.value;
 
