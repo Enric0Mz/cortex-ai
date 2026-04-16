@@ -9,8 +9,7 @@ registry.registerPath({
   method: "post",
   path: "/api/v1/comparisons",
   summary: "Run a prompt across all configured AI providers in parallel",
-  description:
-    "Fans out the prompt to every configured provider (Gemini, Groq, Mistral, OpenRouter) concurrently with a per-provider timeout. Returns once all providers settle. Partial failures are not errors: the response always lists one entry per configured provider with `status: \"ok\"` or `status: \"failed\"`. Only the comparison row itself (metadata) is required to succeed for a 200 response.",
+  description: "",
   tags: ["Comparisons"],
   request: {
     body: {
