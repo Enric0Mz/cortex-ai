@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "test:integration": "playwright test tests/integration",
+    "test:integration:watch": "PWTEST_WATCH=1 npx playwright test",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
