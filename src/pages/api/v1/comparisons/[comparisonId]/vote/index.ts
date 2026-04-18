@@ -1,38 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { z } from "@/openapi/zod";
-import { AppError, ValidationError } from "@/lib/errors";
+import { AppError } from "@/lib/errors";
 import { toErrorResponse } from "@/lib/http";
+import { parseUuidParam } from "@/lib/parse";
 import { getVote } from "@/features/vote/domain";
 import type { ErrorResponse } from "@/openapi/common";
-import type { GetVoteResponse } from "@/features/vote/schemas";
+import type { VoteResponse } from "@/features/vote/schemas";
 
-type ResponseBody = GetVoteResponse | ErrorResponse;
-
-const ComparisonIdSchema = z.uuid();
-
-function parseComparisonId(
-  req: NextApiRequest,
-): { ok: true; value: string } | { ok: false; error: ValidationError } {
-  const raw = req.query.comparisonId;
-  const comparisonId = Array.isArray(raw) ? raw[0] : raw;
-
-  if (!comparisonId) {
-    return {
-      ok: false,
-      error: new ValidationError("comparisonId is required"),
-    };
-  }
-
-  const parsed = ComparisonIdSchema.safeParse(comparisonId);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: new ValidationError("comparisonId must be a valid uuid"),
-    };
-  }
-
-  return { ok: true, value: parsed.data };
-}
+type ResponseBody = VoteResponse | ErrorResponse;
 
 export default async function handler(
   req: NextApiRequest,
@@ -45,7 +19,7 @@ export default async function handler(
     return;
   }
 
-  const comparisonId = parseComparisonId(req);
+  const comparisonId = parseUuidParam(req, "comparisonId");
   if (!comparisonId.ok) {
     res
       .status(comparisonId.error.statusCode)

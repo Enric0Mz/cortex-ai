@@ -36,13 +36,11 @@ async function registerFakeModels(request: {
     { name: PROVIDER_MODELS.openrouter, provider: "openrouter" },
   ];
 
-  for (const model of modelsToRegister) {
-    const req = await request.post("/api/v1/admin/models", {
-      headers: { "x-admin-token": adminToken },
-      data: model,
-    });
-    expect([201, 409]).toContain(req.status());
-  }
+  const req = await request.post("/api/v1/models", {
+    headers: { "x-admin-token": adminToken },
+    data: { models: modelsToRegister },
+  });
+  expect([201, 409]).toContain(req.status());
 }
 
 async function createComparisonWithOkResponses(request: {

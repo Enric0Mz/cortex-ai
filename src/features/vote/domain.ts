@@ -3,14 +3,32 @@ import {
   ValidationError,
   ServiceUnavailableError,
 } from "@/lib/errors";
-import { err, type Result } from "@/lib/result";
-import type { CreateVoteRequest, GetVoteResponse, VoteResponse } from "./schemas";
+import { ok, err, type Result } from "@/lib/result";
+import type { CreateVoteRequest, VoteResponse } from "./schemas";
 import {
   findResponseInComparison,
   findVoteByComparisonAndUser,
   getAnonymousUserId,
   upsertVote,
 } from "./repository";
+
+type VoteRow = {
+  id: string;
+  comparisonId: string;
+  responseId: string;
+  userId: string;
+  createdAt: Date;
+};
+
+function toVoteResponse(vote: VoteRow): VoteResponse {
+  return {
+    id: vote.id,
+    comparisonId: vote.comparisonId,
+    responseId: vote.responseId,
+    userId: vote.userId,
+    createdAt: vote.createdAt.toISOString(),
+  };
+}
 
 export async function castVote(
   comparisonId: string,
@@ -34,22 +52,12 @@ export async function castVote(
   const voteResult = await upsertVote(comparisonId, input.responseId, userId);
   if (!voteResult.ok) return err(voteResult.error);
 
-  const vote = voteResult.value;
-  return {
-    ok: true,
-    value: {
-      id: vote.id,
-      comparisonId: vote.comparisonId,
-      responseId: vote.responseId,
-      userId: vote.userId,
-      createdAt: vote.createdAt.toISOString(),
-    },
-  };
+  return ok(toVoteResponse(voteResult.value));
 }
 
 export async function getVote(
   comparisonId: string,
-): Promise<Result<GetVoteResponse, NotFoundError | ServiceUnavailableError>> {
+): Promise<Result<VoteResponse, NotFoundError | ServiceUnavailableError>> {
   const userResult = await getAnonymousUserId();
   if (!userResult.ok) return err(userResult.error);
   const userId = userResult.value;
@@ -60,15 +68,5 @@ export async function getVote(
     return err(new NotFoundError("vote"));
   }
 
-  const vote = voteResult.value;
-  return {
-    ok: true,
-    value: {
-      id: vote.id,
-      comparisonId: vote.comparisonId,
-      responseId: vote.responseId,
-      userId: vote.userId,
-      createdAt: vote.createdAt.toISOString(),
-    },
-  };
+  return ok(toVoteResponse(voteResult.value));
 }

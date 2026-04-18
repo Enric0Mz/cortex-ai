@@ -1,5 +1,6 @@
 import { NotFoundError, ServiceUnavailableError } from "@/lib/errors";
-import { err, type Result } from "@/lib/result";
+import { ok, err, type Result } from "@/lib/result";
+import { ProviderIdSchema } from "@/features/comparison/schemas";
 import type { ResponseDetails } from "./schemas";
 import { findResponseById } from "./repository";
 
@@ -11,19 +12,16 @@ export async function getResponseById(
   if (!result.value) return err(new NotFoundError("response"));
 
   const row = result.value;
-  return {
-    ok: true,
-    value: {
-      id: row.id,
-      comparisonId: row.comparisonId,
-      provider: row.provider as ResponseDetails["provider"],
-      aiModel: row.aiModel,
-      content: row.content,
-      inputTokens: row.inputTokens,
-      outputTokens: row.outputTokens,
-      costUsd: row.costUsd,
-      latencyMs: row.latencyMs,
-      createdAt: row.createdAt.toISOString(),
-    },
-  };
+  return ok({
+    id: row.id,
+    comparisonId: row.comparisonId,
+    provider: ProviderIdSchema.parse(row.provider),
+    aiModel: row.aiModel,
+    content: row.content,
+    inputTokens: row.inputTokens,
+    outputTokens: row.outputTokens,
+    costUsd: row.costUsd,
+    latencyMs: row.latencyMs,
+    createdAt: row.createdAt.toISOString(),
+  });
 }

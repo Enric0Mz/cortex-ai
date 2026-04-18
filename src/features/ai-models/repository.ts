@@ -8,10 +8,7 @@ import type {
   CreateAiModelsBulkRequest,
   CreateAiModelsBulkResponse,
   AiModelResponse,
-  CreateAiModelRequest,
 } from "@/features/ai-models/schemas";
-
-type Row = { id: string; name: string; provider: string };
 
 function isUniqueConstraintError(cause: unknown): boolean {
   return (
@@ -35,29 +32,6 @@ export async function listAiModels(): Promise<
     },
     (cause) => {
       console.error("[listAiModels] DB error:", cause);
-      return new ServiceUnavailableError("database", cause);
-    },
-  );
-}
-
-export async function createAiModel(
-  input: CreateAiModelRequest,
-): Promise<Result<AiModelResponse, ConflictError | ServiceUnavailableError>> {
-  return tryCatch<AiModelResponse, ConflictError | ServiceUnavailableError>(
-    async () => {
-      const row: Row = await prisma.aiModel.create({
-        data: { name: input.name, provider: input.provider },
-        select: { id: true, name: true, provider: true },
-      });
-      return row;
-    },
-    (cause) => {
-      if (isUniqueConstraintError(cause)) {
-        return new ConflictError(
-          `model already exists for provider "${input.provider}"`,
-        );
-      }
-      console.error("[createAiModel] DB error:", cause);
       return new ServiceUnavailableError("database", cause);
     },
   );

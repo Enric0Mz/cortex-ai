@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { AppError, ValidationError } from "@/lib/errors";
+import { AppError } from "@/lib/errors";
 import { toErrorResponse } from "@/lib/http";
-import parseBody from "@/lib/parse";
+import parseBody, { parseUuidParam } from "@/lib/parse";
 import {
   CreateVoteRequestSchema,
   type VoteResponse,
@@ -10,22 +10,6 @@ import { castVote } from "@/features/vote/domain";
 import type { ErrorResponse } from "@/openapi/common";
 
 type ResponseBody = VoteResponse | ErrorResponse;
-
-function parseComparisonId(
-  req: NextApiRequest,
-): { ok: true; value: string } | { ok: false; error: ValidationError } {
-  const raw = req.query.comparisonId;
-  const comparisonId = Array.isArray(raw) ? raw[0] : raw;
-
-  if (!comparisonId) {
-    return {
-      ok: false,
-      error: new ValidationError("comparisonId is required"),
-    };
-  }
-
-  return { ok: true, value: comparisonId };
-}
 
 export default async function handler(
   req: NextApiRequest,
@@ -38,7 +22,7 @@ export default async function handler(
     return;
   }
 
-  const comparisonId = parseComparisonId(req);
+  const comparisonId = parseUuidParam(req, "comparisonId");
   if (!comparisonId.ok) {
     res
       .status(comparisonId.error.statusCode)

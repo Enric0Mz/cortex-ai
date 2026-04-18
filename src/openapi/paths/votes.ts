@@ -3,7 +3,6 @@ import { z } from "@/openapi/zod";
 import { ErrorResponseSchema } from "@/openapi/common";
 import {
   CreateVoteRequestSchema,
-  GetVoteResponseSchema,
   VoteResponseSchema,
 } from "@/features/vote/schemas";
 
@@ -23,7 +22,7 @@ registry.registerPath({
     200: {
       description: "Vote found.",
       content: {
-        "application/json": { schema: GetVoteResponseSchema },
+        "application/json": { schema: VoteResponseSchema },
       },
     },
     404: {
