@@ -26,9 +26,15 @@ test.describe("OpenAPI spec endpoint", () => {
     expect(doc.paths["/api/v1/models"].post).toBeDefined();
     expect(doc.paths["/api/v1/admin/models"]).toBeDefined();
     expect(doc.paths["/api/v1/admin/models"].post).toBeDefined();
+    expect(doc.paths["/api/v1/responses/{responseId}"]).toBeDefined();
+    expect(doc.paths["/api/v1/responses/{responseId}"].get).toBeDefined();
     expect(doc.paths["/api/v1/comparisons/{comparisonId}/votes"]).toBeDefined();
     expect(
       doc.paths["/api/v1/comparisons/{comparisonId}/votes"].post,
+    ).toBeDefined();
+    expect(doc.paths["/api/v1/comparisons/{comparisonId}/vote"]).toBeDefined();
+    expect(
+      doc.paths["/api/v1/comparisons/{comparisonId}/vote"].get,
     ).toBeDefined();
 
     expect(doc.components?.schemas?.HealthResponse).toBeDefined();
@@ -41,6 +47,8 @@ test.describe("OpenAPI spec endpoint", () => {
     expect(doc.components?.schemas?.ListAiModelsResponse).toBeDefined();
     expect(doc.components?.schemas?.CreateVoteRequest).toBeDefined();
     expect(doc.components?.schemas?.VoteResponse).toBeDefined();
+    expect(doc.components?.schemas?.GetVoteResponse).toBeDefined();
+    expect(doc.components?.schemas?.ResponseDetails).toBeDefined();
     expect(doc.components?.securitySchemes?.bearerAuth).toBeDefined();
   });
 
