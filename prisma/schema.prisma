@@ -41,7 +41,7 @@ model Response {
   id           String     @id @default(uuid())
   comparisonId String     @map("comparison_id")
   provider     String
-  model        String
+  aiModelId    String     @map("ai_model_id")
   content      String
   inputTokens  Int        @map("input_tokens")
   outputTokens Int        @map("output_tokens")
@@ -49,11 +49,12 @@ model Response {
   latencyMs    Int        @map("latency_ms")
   createdAt    DateTime   @default(now()) @map("created_at")
 
+  aiModel      AiModel    @relation(fields: [aiModelId], references: [id], onDelete: Cascade)         
   comparison   Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
   votes        Vote[]
 
   @@index([comparisonId])
-  @@index([model])
+  @@index([aiModelId])
   @@map("responses")
 }
 
@@ -71,4 +72,15 @@ model Vote {
   @@unique([comparisonId, userId])
   @@index([responseId])
   @@map("votes")
+}
+
+model AiModel {
+  id String @id @default(uuid())
+  name String
+  provider String
+
+  responses Response[]
+
+  @@unique([name, provider])
+  @@map("ai_models")
 }
