@@ -32,3 +32,25 @@ export class ValidationError extends AppError {
     super(message, 400, "VALIDATION_ERROR");
   }
 }
+
+export class ServiceUnavailableError extends AppError {
+  constructor(resource: string, cause?: unknown) {
+    super(`${resource} unavailable`, 503, "SERVICE_UNAVAILABLE");
+    if (cause !== undefined) {
+      this.cause = cause;
+    }
+  }
+}
+
+export class ProviderError extends AppError {
+  constructor(
+    public provider: string,
+    message: string,
+    cause?: unknown,
+  ) {
+    super(`${provider}: ${message}`, 502, "PROVIDER_ERROR");
+    if (cause !== undefined) {
+      this.cause = cause;
+    }
+  }
+}
