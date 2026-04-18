@@ -18,6 +18,8 @@ test.describe("Comparison route tests", () => {
       data: body,
     });
 
+    expect(req.status()).toBe(200);
+
     const result: ComparisonResult = await req.json();
     const responses = result.responses;
 

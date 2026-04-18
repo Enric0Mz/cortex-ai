@@ -12,7 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "test:db:migrate": "dotenv -e .env.test -- prisma migrate deploy",
-    "test:db:reset": "dotenv -e .env.test -- prisma migrate reset --force --skip-seed"
+    "test:db:reset": "dotenv -e .env.test -- prisma migrate reset --force"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",
