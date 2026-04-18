@@ -21,10 +21,20 @@ test.describe("OpenAPI spec endpoint", () => {
 
     expect(doc.paths["/api/v1/openapi"]).toBeDefined();
     expect(doc.paths["/api/v1/openapi"].get).toBeDefined();
+    expect(doc.paths["/api/v1/models"]).toBeDefined();
+    expect(doc.paths["/api/v1/models"].get).toBeDefined();
+    expect(doc.paths["/api/v1/models"].post).toBeDefined();
+    expect(doc.paths["/api/v1/admin/models"]).toBeDefined();
+    expect(doc.paths["/api/v1/admin/models"].post).toBeDefined();
 
     expect(doc.components?.schemas?.HealthResponse).toBeDefined();
     expect(doc.components?.schemas?.DatabaseHealth).toBeDefined();
     expect(doc.components?.schemas?.ErrorResponse).toBeDefined();
+    expect(doc.components?.schemas?.CreateAiModelRequest).toBeDefined();
+    expect(doc.components?.schemas?.CreateAiModelsBulkRequest).toBeDefined();
+    expect(doc.components?.schemas?.CreateAiModelsBulkResponse).toBeDefined();
+    expect(doc.components?.schemas?.AiModelResponse).toBeDefined();
+    expect(doc.components?.schemas?.ListAiModelsResponse).toBeDefined();
     expect(doc.components?.securitySchemes?.bearerAuth).toBeDefined();
   });
 

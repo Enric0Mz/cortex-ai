@@ -39,26 +39,35 @@ export async function CreateComparisonResponse(
   }
   return tryCatch(
     async () => {
+      const modelKeys = Array.from(
+        new Set(results.map((r) => `${r.aiModel.name}|${r.aiModel.provider}`)),
+      );
+      const requestedModels = modelKeys.map((key) => {
+        const [name, provider] = key.split("|");
+        return { name, provider };
+      });
+
+      const registeredModels = await prisma.aiModel.findMany({
+        where: { OR: requestedModels },
+        select: { id: true, name: true, provider: true },
+      });
+
       const aiModelIds = new Map<string, string>();
-      for (const r of results) {
+      for (const model of registeredModels) {
+        aiModelIds.set(`${model.name}|${model.provider}`, model.id);
+      }
+
+      const persistableResults = results.filter((r) => {
         const key = `${r.aiModel.name}|${r.aiModel.provider}`;
-        if (aiModelIds.has(key)) continue;
-        const row = await prisma.aiModel.upsert({
-          where: {
-            name_provider: {
-              name: r.aiModel.name,
-              provider: r.aiModel.provider,
-            },
-          },
-          update: {},
-          create: { name: r.aiModel.name, provider: r.aiModel.provider },
-          select: { id: true },
-        });
-        aiModelIds.set(key, row.id);
+        return aiModelIds.has(key);
+      });
+
+      if (persistableResults.length === 0) {
+        return new Map<ProviderId, string>();
       }
 
       const rows = await prisma.response.createManyAndReturn({
-        data: results.map((r) => ({
+        data: persistableResults.map((r) => ({
           comparisonId,
           provider: r.provider,
           aiModelId: aiModelIds.get(`${r.aiModel.name}|${r.aiModel.provider}`)!,

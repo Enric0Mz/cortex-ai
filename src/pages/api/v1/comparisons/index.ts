@@ -9,6 +9,7 @@ import {
 import type { ErrorResponse } from "@/openapi/common";
 import { runComparison } from "@/features/comparison/domain";
 import parseBody from "@/lib/parse";
+import { toErrorResponse } from "@/lib/http";
 
 type ResponseBody = ComparisonResult | ErrorResponse;
 
@@ -32,14 +33,6 @@ async function getAnonymousUserId(): Promise<
     },
     (cause) => new ServiceUnavailableError("database", cause),
   );
-}
-
-function toErrorResponse(error: AppError): ErrorResponse {
-  return {
-    code: error.code,
-    message: error.message,
-    statusCode: error.statusCode,
-  };
 }
 
 export default async function handler(

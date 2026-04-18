@@ -43,7 +43,7 @@ export async function runComparison(
           provider: value.provider,
           model: value.aiModel.name,
           status: "failed" as const,
-          error: "persistence mismatch",
+          error: "model not registered",
           latencyMs: value.latencyMs,
         };
       }
