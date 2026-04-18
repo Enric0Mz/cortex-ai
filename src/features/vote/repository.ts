@@ -83,3 +83,30 @@ export async function upsertVote(
     (cause) => new ServiceUnavailableError("database", cause),
   );
 }
+
+export async function findVoteByComparisonAndUser(
+  comparisonId: string,
+  userId: string,
+): Promise<Result<VoteRow | null, ServiceUnavailableError>> {
+  return tryCatch(
+    async () => {
+      const vote = await prisma.vote.findUnique({
+        where: {
+          comparisonId_userId: {
+            comparisonId,
+            userId,
+          },
+        },
+        select: {
+          id: true,
+          comparisonId: true,
+          responseId: true,
+          userId: true,
+          createdAt: true,
+        },
+      });
+      return vote;
+    },
+    (cause) => new ServiceUnavailableError("database", cause),
+  );
+}

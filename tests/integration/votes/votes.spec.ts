@@ -173,4 +173,76 @@ test.describe("Votes route tests", () => {
       await enableDatabaseConnections();
     }
   });
+
+  test("GET /vote should return 404 when user has not voted yet", async ({
+    request,
+  }) => {
+    const comparison = await createComparisonWithOkResponses(request);
+
+    const req = await request.get(`/api/v1/comparisons/${comparison.id}/vote`);
+    expect(req.status()).toBe(404);
+    const result = (await req.json()) as {
+      code: string;
+      message: string;
+      statusCode: number;
+    };
+    expect(result.code).toBe("NOT_FOUND");
+    expect(result.statusCode).toBe(404);
+  });
+
+  test("GET /vote should return vote after vote creation", async ({
+    request,
+  }) => {
+    const comparison = await createComparisonWithOkResponses(request);
+    const responseId = comparison.responses.find((r) => r.status === "ok")!.id;
+
+    const createReq = await request.post(
+      `/api/v1/comparisons/${comparison.id}/votes`,
+      { data: { responseId } },
+    );
+    expect(createReq.status()).toBe(200);
+    const created = (await createReq.json()) as VoteResponse;
+
+    const getReq = await request.get(`/api/v1/comparisons/${comparison.id}/vote`);
+    expect(getReq.status()).toBe(200);
+    const fetched = (await getReq.json()) as VoteResponse;
+
+    expect(fetched.id).toBe(created.id);
+    expect(fetched.comparisonId).toBe(comparison.id);
+    expect(fetched.responseId).toBe(responseId);
+    expect(fetched.userId).toBe(created.userId);
+  });
+
+  test("POST /vote should return method not allowed", async ({ request }) => {
+    const comparison = await createComparisonWithOkResponses(request);
+    const responseId = comparison.responses.find((r) => r.status === "ok")!.id;
+
+    const req = await request.post(`/api/v1/comparisons/${comparison.id}/vote`, {
+      data: { responseId },
+    });
+    expect(req.status()).toBe(405);
+  });
+
+  test("GET /vote should return 400 for invalid comparisonId", async ({
+    request,
+  }) => {
+    const req = await request.get("/api/v1/comparisons/not-a-uuid/vote");
+    expect(req.status()).toBe(400);
+  });
+
+  test("GET /vote should return 503 when database is unavailable", async ({
+    request,
+  }) => {
+    const comparison = await createComparisonWithOkResponses(request);
+
+    await disableDatabaseConnections();
+    try {
+      const req = await request.get(
+        `/api/v1/comparisons/${comparison.id}/vote`,
+      );
+      expect(req.status()).toBe(503);
+    } finally {
+      await enableDatabaseConnections();
+    }
+  });
 });

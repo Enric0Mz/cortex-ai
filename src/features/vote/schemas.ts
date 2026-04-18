@@ -20,3 +20,9 @@ export const VoteResponseSchema = registry.register(
   }),
 );
 export type VoteResponse = z.infer<typeof VoteResponseSchema>;
+
+export const GetVoteResponseSchema = registry.register(
+  "GetVoteResponse",
+  VoteResponseSchema,
+);
+export type GetVoteResponse = z.infer<typeof GetVoteResponseSchema>;
