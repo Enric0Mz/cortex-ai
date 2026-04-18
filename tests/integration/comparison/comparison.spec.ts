@@ -8,7 +8,7 @@ import {
 
 test.describe("Comparison route tests", () => {
   test.beforeAll(async ({ request }) => {
-    const adminToken = "test-admin-token";
+    const adminToken = process.env.ADMIN_API_TOKEN ?? "";
     const modelsToRegister = [
       { name: PROVIDER_MODELS.gemini, provider: "gemini" },
       { name: PROVIDER_MODELS.groq, provider: "groq" },

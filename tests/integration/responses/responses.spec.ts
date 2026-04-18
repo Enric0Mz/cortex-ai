@@ -28,7 +28,7 @@ async function registerFakeModels(request: {
     options?: { headers?: Record<string, string>; data?: unknown },
   ) => Promise<{ status(): number }>;
 }): Promise<void> {
-  const adminToken = "test-admin-token";
+  const adminToken = process.env.ADMIN_API_TOKEN ?? "";
   const modelsToRegister = [
     { name: PROVIDER_MODELS.gemini, provider: "gemini" },
     { name: PROVIDER_MODELS.groq, provider: "groq" },

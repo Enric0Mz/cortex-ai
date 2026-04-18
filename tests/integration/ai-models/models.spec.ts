@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import type { ListAiModelsResponse } from "@/features/ai-models/schemas";
 
-const ADMIN_TOKEN = "test-admin-token";
+const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN ?? "";
 const unique = (prefix: string): string =>
   `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
