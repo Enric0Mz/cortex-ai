@@ -1,16 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import {
-  CreateAiModelRequestSchema,
-  type AiModelResponse,
-} from "@/features/ai-models/schemas";
-import { createModel } from "@/features/ai-models/domain";
 import { AppError } from "@/lib/errors";
-import type { ErrorResponse } from "@/openapi/common";
-import parseBody from "@/lib/parse";
-import { requireAdminToken } from "@/lib/auth";
 import { toErrorResponse } from "@/lib/http";
+import parseBody, { parseUuidParam } from "@/lib/parse";
+import {
+  CreateVoteRequestSchema,
+  type VoteResponse,
+} from "@/features/vote/schemas";
+import { castVote } from "@/features/vote/domain";
+import type { ErrorResponse } from "@/openapi/common";
 
-type ResponseBody = AiModelResponse | ErrorResponse;
+type ResponseBody = VoteResponse | ErrorResponse;
 
 export default async function handler(
   req: NextApiRequest,
@@ -23,23 +22,25 @@ export default async function handler(
     return;
   }
 
-  const auth = requireAdminToken(req);
-  if (!auth.ok) {
-    res.status(auth.error.statusCode).json(toErrorResponse(auth.error));
+  const comparisonId = parseUuidParam(req, "comparisonId");
+  if (!comparisonId.ok) {
+    res
+      .status(comparisonId.error.statusCode)
+      .json(toErrorResponse(comparisonId.error));
     return;
   }
 
-  const parsed = parseBody(CreateAiModelRequestSchema, req.body);
+  const parsed = parseBody(CreateVoteRequestSchema, req.body);
   if (!parsed.ok) {
     res.status(parsed.error.statusCode).json(toErrorResponse(parsed.error));
     return;
   }
 
-  const result = await createModel(parsed.value);
+  const result = await castVote(comparisonId.value, parsed.value);
   if (!result.ok) {
     res.status(result.error.statusCode).json(toErrorResponse(result.error));
     return;
   }
 
-  res.status(201).json(result.value);
+  res.status(200).json(result.value);
 }

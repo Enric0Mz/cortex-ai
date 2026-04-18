@@ -1,10 +1,8 @@
 import { registry } from "@/openapi/registry";
 import { ErrorResponseSchema } from "@/openapi/common";
 import {
-  AiModelResponseSchema,
   CreateAiModelsBulkRequestSchema,
   CreateAiModelsBulkResponseSchema,
-  CreateAiModelRequestSchema,
   ListAiModelsResponseSchema,
 } from "@/features/ai-models/schemas";
 
@@ -87,70 +85,6 @@ registry.registerPath({
     },
     409: {
       description: "One or more models already exist.",
-      content: {
-        "application/json": { schema: ErrorResponseSchema },
-      },
-    },
-    503: {
-      description: "Database unavailable.",
-      content: {
-        "application/json": { schema: ErrorResponseSchema },
-      },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "post",
-  path: "/api/v1/admin/models",
-  summary: "Register an AI model",
-  description:
-    "Creates a model entry in the admin-curated catalog. Requires the `x-admin-token` header.",
-  tags: ["Models"],
-  parameters: [
-    {
-      in: "header",
-      name: "x-admin-token",
-      required: true,
-      schema: { type: "string" },
-      description: "Shared secret token for admin routes.",
-    },
-  ],
-  request: {
-    body: {
-      required: true,
-      content: {
-        "application/json": { schema: CreateAiModelRequestSchema },
-      },
-    },
-  },
-  responses: {
-    201: {
-      description: "Model registered.",
-      content: {
-        "application/json": { schema: AiModelResponseSchema },
-      },
-    },
-    400: {
-      description: "Request body failed validation.",
-      content: {
-        "application/json": { schema: ErrorResponseSchema },
-      },
-    },
-    401: {
-      description: "Missing or invalid admin token.",
-      content: {
-        "application/json": { schema: ErrorResponseSchema },
-      },
-    },
-    405: {
-      description: "Method not allowed.",
-      content: {
-        "application/json": { schema: ErrorResponseSchema },
-      },
-    },
-    409: {
-      description: "Model already exists for that provider.",
       content: {
         "application/json": { schema: ErrorResponseSchema },
       },
