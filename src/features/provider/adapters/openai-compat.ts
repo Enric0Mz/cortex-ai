@@ -8,6 +8,7 @@ interface OpenAICompatConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
+  modelProvider: string;
   extraHeaders?: Record<string, string>;
 }
 
@@ -56,7 +57,7 @@ export function openAIChatAdapter(config: OpenAICompatConfig): ProviderAdapter {
 
           return {
             provider: config.id,
-            model: config.model,
+            aiModel: { name: config.model, provider: config.modelProvider },
             content,
             inputTokens: data.usage?.prompt_tokens ?? 0,
             outputTokens: data.usage?.completion_tokens ?? 0,

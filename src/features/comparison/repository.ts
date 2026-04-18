@@ -4,6 +4,7 @@ import { tryCatch, type Result } from "@/lib/result";
 import {
   type CreateComparisonRequest,
   type ProviderId,
+  type ProviderResult,
 } from "@/features/comparison/schemas";
 
 export async function CreateComparison(
@@ -22,32 +23,45 @@ export async function CreateComparison(
       });
       return row;
     },
-    (cause) => new ServiceUnavailableError("database", cause),
+    (cause) => {
+      console.error("[CreateComparison] DB error:", cause);
+      return new ServiceUnavailableError("database", cause);
+    },
   );
 }
 
 export async function CreateComparisonResponse(
   comparisonId: string,
-  results: Array<{
-    provider: ProviderId;
-    model: string;
-    content: string;
-    inputTokens: number;
-    outputTokens: number;
-    costUsd: number;
-    latencyMs: number;
-  }>,
+  results: ProviderResult[],
 ): Promise<Result<Map<ProviderId, string>, ServiceUnavailableError>> {
   if (results.length === 0) {
     return { ok: true, value: new Map() };
   }
   return tryCatch(
     async () => {
+      const aiModelIds = new Map<string, string>();
+      for (const r of results) {
+        const key = `${r.aiModel.name}|${r.aiModel.provider}`;
+        if (aiModelIds.has(key)) continue;
+        const row = await prisma.aiModel.upsert({
+          where: {
+            name_provider: {
+              name: r.aiModel.name,
+              provider: r.aiModel.provider,
+            },
+          },
+          update: {},
+          create: { name: r.aiModel.name, provider: r.aiModel.provider },
+          select: { id: true },
+        });
+        aiModelIds.set(key, row.id);
+      }
+
       const rows = await prisma.response.createManyAndReturn({
         data: results.map((r) => ({
           comparisonId,
           provider: r.provider,
-          model: r.model,
+          aiModelId: aiModelIds.get(`${r.aiModel.name}|${r.aiModel.provider}`)!,
           content: r.content,
           inputTokens: r.inputTokens,
           outputTokens: r.outputTokens,
@@ -62,6 +76,9 @@ export async function CreateComparisonResponse(
       }
       return byProvider;
     },
-    (cause) => new ServiceUnavailableError("database", cause),
+    (cause) => {
+      console.error("[CreateComparisonResponse] DB error:", cause);
+      return new ServiceUnavailableError("database", cause);
+    },
   );
 }

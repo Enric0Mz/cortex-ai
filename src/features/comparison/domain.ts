@@ -41,7 +41,7 @@ export async function runComparison(
       if (!id) {
         return {
           provider: value.provider,
-          model: value.model,
+          model: value.aiModel.name,
           status: "failed" as const,
           error: "persistence mismatch",
           latencyMs: value.latencyMs,

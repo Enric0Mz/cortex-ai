@@ -1,6 +1,8 @@
 import { z } from "@/openapi/zod";
 import { registry } from "@/openapi/registry";
 
+import { AiModelSchema } from "../ai-models/schemas";
+
 export const ProviderIdSchema = registry.register(
   "ProviderId",
   z
@@ -13,7 +15,7 @@ export const ProviderResultSchema = registry.register(
   "ProviderResult",
   z.object({
     provider: ProviderIdSchema,
-    model: z.string().openapi({ example: "gemini-2.0-flash" }),
+    aiModel: AiModelSchema,
     content: z.string().openapi({ example: "Paris is the capital of France." }),
     inputTokens: z.number().int().nonnegative().openapi({ example: 12 }),
     outputTokens: z.number().int().nonnegative().openapi({ example: 34 }),

@@ -8,6 +8,7 @@ export function openrouterAdapter(apiKey: string): ProviderAdapter {
     baseUrl: "https://openrouter.ai/api/v1",
     apiKey,
     model: PROVIDER_MODELS.openrouter,
+    modelProvider: "openai",
     extraHeaders: {
       "HTTP-Referer": "https://cortex-ai.local",
       "X-Title": "Cortex AI",

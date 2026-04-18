@@ -8,5 +8,6 @@ export function groqAdapter(apiKey: string): ProviderAdapter {
     baseUrl: "https://api.groq.com/openai/v1",
     apiKey,
     model: PROVIDER_MODELS.groq,
+    modelProvider: "meta",
   });
 }

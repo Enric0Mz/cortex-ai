@@ -8,5 +8,6 @@ export function mistralAdapter(apiKey: string): ProviderAdapter {
     baseUrl: "https://api.mistral.ai/v1",
     apiKey,
     model: PROVIDER_MODELS.mistral,
+    modelProvider: "mistral",
   });
 }
