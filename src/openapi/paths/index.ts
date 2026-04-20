@@ -1,4 +1,5 @@
 import "@/openapi/common";
+import "./auth";
 import "./comparisons";
 import "./health";
 import "./models";
