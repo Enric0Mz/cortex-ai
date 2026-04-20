@@ -86,7 +86,9 @@ test.describe("Votes route tests", () => {
     }
   });
 
-  test("POST should create a vote for a valid response", async ({ request }) => {
+  test("POST should create a vote for a valid response", async ({
+    request,
+  }) => {
     const comparison = await createComparisonWithOkResponses(request);
     const responseId = comparison.responses.find((r) => r.status === "ok")!.id;
 
@@ -226,7 +228,9 @@ test.describe("Votes route tests", () => {
     expect(createReq.status()).toBe(200);
     const created = (await createReq.json()) as VoteResponse;
 
-    const getReq = await request.get(`/api/v1/comparisons/${comparison.id}/vote`);
+    const getReq = await request.get(
+      `/api/v1/comparisons/${comparison.id}/vote`,
+    );
     expect(getReq.status()).toBe(200);
     const fetched = (await getReq.json()) as VoteResponse;
 
@@ -240,9 +244,12 @@ test.describe("Votes route tests", () => {
     const comparison = await createComparisonWithOkResponses(request);
     const responseId = comparison.responses.find((r) => r.status === "ok")!.id;
 
-    const req = await request.post(`/api/v1/comparisons/${comparison.id}/vote`, {
-      data: { responseId },
-    });
+    const req = await request.post(
+      `/api/v1/comparisons/${comparison.id}/vote`,
+      {
+        data: { responseId },
+      },
+    );
     expect(req.status()).toBe(405);
   });
 

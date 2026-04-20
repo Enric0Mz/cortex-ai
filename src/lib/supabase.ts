@@ -16,7 +16,7 @@ interface ParsedCookie {
 
 export function createSupabaseServerClient(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ): SupabaseClient {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -29,10 +29,12 @@ export function createSupabaseServerClient(
       setAll(cookiesToSet): void {
         const serialized = cookiesToSet.map(({ name, value, options }) => {
           const parts: string[] = [`${name}=${value}`];
-          if (options?.maxAge !== undefined) parts.push(`Max-Age=${options.maxAge}`);
+          if (options?.maxAge !== undefined)
+            parts.push(`Max-Age=${options.maxAge}`);
           if (options?.domain) parts.push(`Domain=${options.domain}`);
           if (options?.path) parts.push(`Path=${options.path}`);
-          if (options?.expires) parts.push(`Expires=${options.expires.toUTCString()}`);
+          if (options?.expires)
+            parts.push(`Expires=${options.expires.toUTCString()}`);
           if (options?.httpOnly) parts.push("HttpOnly");
           if (options?.secure) parts.push("Secure");
           if (options?.sameSite) parts.push(`SameSite=${options.sameSite}`);

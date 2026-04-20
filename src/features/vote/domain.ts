@@ -41,7 +41,9 @@ export async function castVote(
   if (!responseResult.ok) return err(responseResult.error);
   if (!responseResult.value) {
     return err(
-      new ValidationError("responseId must belong to the provided comparisonId"),
+      new ValidationError(
+        "responseId must belong to the provided comparisonId",
+      ),
     );
   }
 

@@ -43,7 +43,11 @@ export default async function handler(
     return;
   }
 
-  const result = await castVote(comparisonId.value, user.value.id, parsed.value);
+  const result = await castVote(
+    comparisonId.value,
+    user.value.id,
+    parsed.value,
+  );
   if (!result.ok) {
     res.status(result.error.statusCode).json(toErrorResponse(result.error));
     return;

@@ -15,6 +15,7 @@ src/features/<feature>/repository.ts  ← Database access
 ```
 
 ### 1. `index.ts` (HTTP layer)
+
 Lives in `src/pages/api/v1/`. Handles **only** HTTP concerns: method checks, request parsing, calling domain, sending responses. No business logic, no database calls.
 
 ```ts
@@ -27,9 +28,11 @@ export default async function handler(req, res) {
 ```
 
 ### 2. `domain.ts` (Business logic)
+
 Lives in `src/features/<feature>/`. Orchestrates the feature: calls repository functions, runs provider fan-outs, builds response payloads. Never touches `req`/`res`. Never calls `prisma` directly.
 
 ### 3. `repository.ts` (Database layer)
+
 Lives in `src/features/<feature>/`. The **only** place that talks to Prisma/database. Exports functions that return `Result<T, ServiceUnavailableError>`. Domain calls these, never `prisma` directly.
 
 Reference implementation: `src/pages/api/v1/comparisons/index.ts` → `src/features/comparison/domain.ts` → `src/features/comparison/repository.ts`.
@@ -49,7 +52,9 @@ export const CreateComparisonRequestSchema = registry.register(
   "CreateComparisonRequest",
   z.object({ prompt: z.string().min(1), category: z.string().optional() }),
 );
-export type CreateComparisonRequest = z.infer<typeof CreateComparisonRequestSchema>;
+export type CreateComparisonRequest = z.infer<
+  typeof CreateComparisonRequestSchema
+>;
 ```
 
 ## Error Handling
@@ -92,11 +97,11 @@ Run tests: `npm run test:integration`
 
 ## Key Files
 
-| Path | Purpose |
-|---|---|
-| `src/lib/result.ts` | `Result<T,E>`, `ok()`, `err()`, `tryCatch()` |
-| `src/lib/errors.ts` | `AppError` hierarchy (`ValidationError`, `ServiceUnavailableError`, etc.) |
-| `src/lib/parse.ts` | `parseBody(schema, body)` — validates with Zod, returns Result |
-| `src/lib/constants.ts` | Provider models, timeouts, limits |
-| `src/features/provider/registry.ts` | `buildAdapters()` — resolves configured AI providers |
-| `playwright.config.ts` | Integration test config, test server on port 3001 |
+| Path                                | Purpose                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| `src/lib/result.ts`                 | `Result<T,E>`, `ok()`, `err()`, `tryCatch()`                              |
+| `src/lib/errors.ts`                 | `AppError` hierarchy (`ValidationError`, `ServiceUnavailableError`, etc.) |
+| `src/lib/parse.ts`                  | `parseBody(schema, body)` — validates with Zod, returns Result            |
+| `src/lib/constants.ts`              | Provider models, timeouts, limits                                         |
+| `src/features/provider/registry.ts` | `buildAdapters()` — resolves configured AI providers                      |
+| `playwright.config.ts`              | Integration test config, test server on port 3001                         |

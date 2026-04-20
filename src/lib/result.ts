@@ -19,7 +19,7 @@ export function err<E>(error: E): Result<never, E> {
  */
 export async function tryCatch<T, E = Error>(
   fn: () => Promise<T>,
-  mapError?: (cause: unknown) => E
+  mapError?: (cause: unknown) => E,
 ): Promise<Result<T, E>> {
   try {
     return ok(await fn());
@@ -27,8 +27,7 @@ export async function tryCatch<T, E = Error>(
     if (mapError) {
       return err(mapError(cause));
     }
-    const error =
-      cause instanceof Error ? cause : new Error(String(cause));
+    const error = cause instanceof Error ? cause : new Error(String(cause));
     return err(error as unknown as E);
   }
 }

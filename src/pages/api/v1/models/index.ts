@@ -11,7 +11,10 @@ import { toErrorResponse } from "@/lib/http";
 import parseBody from "@/lib/parse";
 import { requireAdminToken } from "@/lib/auth";
 
-type ResponseBody = ListAiModelsResponse | CreateAiModelsBulkResponse | ErrorResponse;
+type ResponseBody =
+  | ListAiModelsResponse
+  | CreateAiModelsBulkResponse
+  | ErrorResponse;
 
 export default async function handler(
   req: NextApiRequest,

@@ -5,15 +5,8 @@ export const DatabaseHealthSchema = registry.register(
   "DatabaseHealth",
   z.object({
     status: z.enum(["up", "down"]).openapi({ example: "up" }),
-    version: z
-      .string()
-      .nullable()
-      .openapi({ example: "16.13" }),
-    openConnections: z
-      .number()
-      .int()
-      .nullable()
-      .openapi({ example: 2 }),
+    version: z.string().nullable().openapi({ example: "16.13" }),
+    openConnections: z.number().int().nullable().openapi({ example: 2 }),
     latencyMs: z.number().int().openapi({ example: 4 }),
     error: z.string().nullable().openapi({ example: null }),
   }),
