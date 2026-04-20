@@ -13,6 +13,7 @@ registry.registerPath({
   description:
     "Returns the current user vote for the given comparison.",
   tags: ["Votes"],
+  security: [{ cookieAuth: [] }],
   request: {
     params: z.object({
       comparisonId: z.uuid(),
@@ -23,6 +24,12 @@ registry.registerPath({
       description: "Vote found.",
       content: {
         "application/json": { schema: VoteResponseSchema },
+      },
+    },
+    401: {
+      description: "Not authenticated.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
       },
     },
     404: {
@@ -59,6 +66,7 @@ registry.registerPath({
   description:
     "Creates a vote for the current user in the given comparison, or updates the previous vote to a new response.",
   tags: ["Votes"],
+  security: [{ cookieAuth: [] }],
   request: {
     params: z.object({
       comparisonId: z.uuid(),
@@ -80,6 +88,12 @@ registry.registerPath({
     400: {
       description:
         "Invalid request body or response does not belong to the provided comparison.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    401: {
+      description: "Not authenticated.",
       content: {
         "application/json": { schema: ErrorResponseSchema },
       },

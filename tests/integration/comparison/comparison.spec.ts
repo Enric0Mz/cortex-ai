@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../helpers/fixtures";
 import { PROVIDER_MODELS } from "@/lib/constants";
 
 import {
@@ -23,17 +23,22 @@ test.describe("Comparison route tests", () => {
     expect([201, 409]).toContain(req.status());
   });
 
+  test("POST /api/v1/comparisons requires authentication", async ({ anon }) => {
+    const req = await anon.post("/api/v1/comparisons", {
+      data: { prompt: "hi", category: "generic" },
+    });
+    expect(req.status()).toBe(401);
+  });
+
   test("Comparing 4 models should return an array with 4 results", async ({
-    request,
+    ctx,
   }) => {
     const body: CreateComparisonRequest = {
       prompt: "How many letter a`s are present in banana in one sentence",
       category: "generic",
     };
 
-    const req = await request.post("/api/v1/comparisons", {
-      data: body,
-    });
+    const req = await ctx.post("/api/v1/comparisons", { data: body });
 
     expect(req.status()).toBe(200);
 

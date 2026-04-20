@@ -1,7 +1,9 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { env } from "@/lib/env";
-import { UnauthorizedError } from "@/lib/errors";
+import { ServiceUnavailableError, UnauthorizedError } from "@/lib/errors";
 import { ok, err, type Result } from "@/lib/result";
+import { getCurrentUser } from "@/features/auth/domain";
+import type { CurrentUser } from "@/features/auth/schemas";
 
 export function requireAdminToken(
   req: NextApiRequest,
@@ -12,4 +14,11 @@ export function requireAdminToken(
     return err(new UnauthorizedError("admin token required"));
   }
   return ok(undefined);
+}
+
+export async function requireUser(
+  req: NextApiRequest,
+  res: NextApiResponse,
+): Promise<Result<CurrentUser, UnauthorizedError | ServiceUnavailableError>> {
+  return getCurrentUser(req, res);
 }

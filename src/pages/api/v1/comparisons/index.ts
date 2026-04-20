@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
-import { AppError, ServiceUnavailableError } from "@/lib/errors";
-import { tryCatch, type Result } from "@/lib/result";
+import { AppError } from "@/lib/errors";
 import {
   CreateComparisonRequestSchema,
   type ComparisonResult,
@@ -10,30 +8,9 @@ import type { ErrorResponse } from "@/openapi/common";
 import { runComparison } from "@/features/comparison/domain";
 import parseBody from "@/lib/parse";
 import { toErrorResponse } from "@/lib/http";
+import { requireUser } from "@/lib/auth";
 
 type ResponseBody = ComparisonResult | ErrorResponse;
-
-// TODO(auth): replace with authed Supabase user
-async function getAnonymousUserId(): Promise<
-  Result<string, ServiceUnavailableError>
-> {
-  return tryCatch(
-    async () => {
-      const user = await prisma.user.upsert({
-        where: { email: "anonymous@local" },
-        update: {},
-        create: {
-          email: "anonymous@local",
-          name: "Anonymous",
-          authProvider: "anonymous",
-        },
-        select: { id: true },
-      });
-      return user.id;
-    },
-    (cause) => new ServiceUnavailableError("database", cause),
-  );
-}
 
 export default async function handler(
   req: NextApiRequest,
@@ -46,24 +23,19 @@ export default async function handler(
     return;
   }
 
-  const parsed = parseBody(CreateComparisonRequestSchema, req.body);
+  const user = await requireUser(req, res);
+  if (!user.ok) {
+    res.status(user.error.statusCode).json(toErrorResponse(user.error));
+    return;
+  }
 
+  const parsed = parseBody(CreateComparisonRequestSchema, req.body);
   if (!parsed.ok) {
     res.status(parsed.error.statusCode).json(toErrorResponse(parsed.error));
     return;
   }
 
-  const input = parsed.value;
-
-  const userResult = await getAnonymousUserId();
-  if (!userResult.ok) {
-    res
-      .status(userResult.error.statusCode)
-      .json(toErrorResponse(userResult.error));
-    return;
-  }
-
-  const result = await runComparison(userResult.value, input);
+  const result = await runComparison(user.value.id, parsed.value);
   if (!result.ok) {
     res.status(result.error.statusCode).json(toErrorResponse(result.error));
     return;
