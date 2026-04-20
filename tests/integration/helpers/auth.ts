@@ -1,6 +1,6 @@
 import { expect, type APIRequestContext } from "@playwright/test";
 
-type TestUser = {
+export type TestUser = {
   id: string;
   email: string;
   name: string | null;
