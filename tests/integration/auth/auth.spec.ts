@@ -47,6 +47,16 @@ test.describe("Auth routes", () => {
     const body = (await res.json()) as { url: string };
     expect(body.url).toContain("supabase");
   });
+  test("POST /api/v1/auth/signin accepts a safe redirect page", async ({
+    request,
+  }) => {
+    const res = await request.post("/api/v1/auth/signin", {
+      data: { next: "/" },
+    });
+    expect(res.status()).toBe(200);
+    const body = (await res.json()) as { url: string };
+    expect(body.url).toContain("supabase");
+  });
 
   test("POST /api/v1/auth/signin rejects an unsafe next redirect", async ({
     request,
