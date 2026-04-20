@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { AppError } from "@/lib/errors";
 import { toErrorResponse } from "@/lib/http";
 import parseBody, { parseUuidParam } from "@/lib/parse";
+import { requireUser } from "@/lib/auth";
 import {
   CreateVoteRequestSchema,
   type VoteResponse,
@@ -30,13 +31,19 @@ export default async function handler(
     return;
   }
 
+  const user = await requireUser(req, res);
+  if (!user.ok) {
+    res.status(user.error.statusCode).json(toErrorResponse(user.error));
+    return;
+  }
+
   const parsed = parseBody(CreateVoteRequestSchema, req.body);
   if (!parsed.ok) {
     res.status(parsed.error.statusCode).json(toErrorResponse(parsed.error));
     return;
   }
 
-  const result = await castVote(comparisonId.value, parsed.value);
+  const result = await castVote(comparisonId.value, user.value.id, parsed.value);
   if (!result.ok) {
     res.status(result.error.statusCode).json(toErrorResponse(result.error));
     return;

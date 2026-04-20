@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { AppError } from "@/lib/errors";
 import { toErrorResponse } from "@/lib/http";
 import { parseUuidParam } from "@/lib/parse";
+import { requireUser } from "@/lib/auth";
 import { getVote } from "@/features/vote/domain";
 import type { ErrorResponse } from "@/openapi/common";
 import type { VoteResponse } from "@/features/vote/schemas";
@@ -27,7 +28,13 @@ export default async function handler(
     return;
   }
 
-  const result = await getVote(comparisonId.value);
+  const user = await requireUser(req, res);
+  if (!user.ok) {
+    res.status(user.error.statusCode).json(toErrorResponse(user.error));
+    return;
+  }
+
+  const result = await getVote(comparisonId.value, user.value.id);
   if (!result.ok) {
     res.status(result.error.statusCode).json(toErrorResponse(result.error));
     return;

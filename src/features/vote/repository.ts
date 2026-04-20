@@ -10,27 +10,6 @@ type VoteRow = {
   createdAt: Date;
 };
 
-export async function getAnonymousUserId(): Promise<
-  Result<string, ServiceUnavailableError>
-> {
-  return tryCatch(
-    async () => {
-      const user = await prisma.user.upsert({
-        where: { email: "anonymous@local" },
-        update: {},
-        create: {
-          email: "anonymous@local",
-          name: "Anonymous",
-          authProvider: "anonymous",
-        },
-        select: { id: true },
-      });
-      return user.id;
-    },
-    (cause) => new ServiceUnavailableError("database", cause),
-  );
-}
-
 export async function findResponseInComparison(
   comparisonId: string,
   responseId: string,

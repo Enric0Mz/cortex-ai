@@ -8,7 +8,6 @@ import type { CreateVoteRequest, VoteResponse } from "./schemas";
 import {
   findResponseInComparison,
   findVoteByComparisonAndUser,
-  getAnonymousUserId,
   upsertVote,
 } from "./repository";
 
@@ -32,12 +31,9 @@ function toVoteResponse(vote: VoteRow): VoteResponse {
 
 export async function castVote(
   comparisonId: string,
+  userId: string,
   input: CreateVoteRequest,
 ): Promise<Result<VoteResponse, ValidationError | ServiceUnavailableError>> {
-  const userResult = await getAnonymousUserId();
-  if (!userResult.ok) return err(userResult.error);
-  const userId = userResult.value;
-
   const responseResult = await findResponseInComparison(
     comparisonId,
     input.responseId,
@@ -57,11 +53,8 @@ export async function castVote(
 
 export async function getVote(
   comparisonId: string,
+  userId: string,
 ): Promise<Result<VoteResponse, NotFoundError | ServiceUnavailableError>> {
-  const userResult = await getAnonymousUserId();
-  if (!userResult.ok) return err(userResult.error);
-  const userId = userResult.value;
-
   const voteResult = await findVoteByComparisonAndUser(comparisonId, userId);
   if (!voteResult.ok) return err(voteResult.error);
   if (!voteResult.value) {
