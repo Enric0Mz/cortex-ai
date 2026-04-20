@@ -56,7 +56,11 @@ export default async function handler(
       user_metadata: name ? { full_name: name } : undefined,
     });
     if (created.error || !created.data.user) {
-      const error = new AppError("auth unavailable", 503, "SERVICE_UNAVAILABLE");
+      const error = new AppError(
+        "auth unavailable",
+        503,
+        "SERVICE_UNAVAILABLE",
+      );
       res.status(503).json(toErrorResponse(error));
       return;
     }

@@ -10,8 +10,7 @@ registry.registerPath({
   method: "get",
   path: "/api/v1/comparisons/{comparisonId}/vote",
   summary: "Get current user vote for a comparison",
-  description:
-    "Returns the current user vote for the given comparison.",
+  description: "Returns the current user vote for the given comparison.",
   tags: ["Votes"],
   security: [{ cookieAuth: [] }],
   request: {

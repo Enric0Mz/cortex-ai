@@ -1,8 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import {
-  ConflictError,
-  ServiceUnavailableError,
-} from "@/lib/errors";
+import { ConflictError, ServiceUnavailableError } from "@/lib/errors";
 import { tryCatch, type Result } from "@/lib/result";
 import type {
   CreateAiModelsBulkRequest,

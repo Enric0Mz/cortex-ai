@@ -1,7 +1,4 @@
-import type {
-  ConflictError,
-  ServiceUnavailableError,
-} from "@/lib/errors";
+import type { ConflictError, ServiceUnavailableError } from "@/lib/errors";
 import type { Result } from "@/lib/result";
 import type {
   AiModelResponse,

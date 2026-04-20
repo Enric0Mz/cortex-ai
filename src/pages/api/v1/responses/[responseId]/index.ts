@@ -21,7 +21,9 @@ export default async function handler(
 
   const responseId = parseUuidParam(req, "responseId");
   if (!responseId.ok) {
-    res.status(responseId.error.statusCode).json(toErrorResponse(responseId.error));
+    res
+      .status(responseId.error.statusCode)
+      .json(toErrorResponse(responseId.error));
     return;
   }
 
