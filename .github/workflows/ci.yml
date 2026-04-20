@@ -79,6 +79,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Generate Prisma client
+        run: npx prisma generate
+
       - name: Write .env.test
         run: |
           cat > .env.test <<'EOF'
