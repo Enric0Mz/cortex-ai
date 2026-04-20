@@ -1,10 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 import { PROVIDER_MODELS } from "@/lib/constants";
 import type { ComparisonResult } from "@/features/comparison/schemas";
 import {
   disableDatabaseConnections,
   enableDatabaseConnections,
 } from "../helpers/db-control";
+import { signInTestUser } from "../helpers/auth";
 
 type ResponseDetails = {
   id: string;
@@ -43,12 +44,10 @@ async function registerFakeModels(request: {
   expect([201, 409]).toContain(req.status());
 }
 
-async function createComparisonWithOkResponses(request: {
-  post: (
-    url: string,
-    options?: { data?: unknown },
-  ) => Promise<{ status(): number; json(): Promise<unknown> }>;
-}): Promise<ComparisonResult> {
+async function createComparisonWithOkResponses(
+  request: APIRequestContext,
+): Promise<ComparisonResult> {
+  await signInTestUser(request);
   const req = await request.post("/api/v1/comparisons", {
     data: {
       prompt: "Response lookup test prompt",

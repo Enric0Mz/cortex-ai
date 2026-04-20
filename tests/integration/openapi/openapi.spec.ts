@@ -46,7 +46,15 @@ test.describe("OpenAPI spec endpoint", () => {
     expect(doc.components?.schemas?.CreateVoteRequest).toBeDefined();
     expect(doc.components?.schemas?.VoteResponse).toBeDefined();
     expect(doc.components?.schemas?.ResponseDetails).toBeDefined();
+    expect(doc.components?.schemas?.CurrentUser).toBeDefined();
+    expect(doc.components?.schemas?.SignInRequest).toBeDefined();
+    expect(doc.components?.schemas?.SignInResponse).toBeDefined();
+    expect(doc.paths["/api/v1/auth/signin"]).toBeDefined();
+    expect(doc.paths["/api/v1/auth/callback"]).toBeDefined();
+    expect(doc.paths["/api/v1/auth/me"]).toBeDefined();
+    expect(doc.paths["/api/v1/auth/signout"]).toBeDefined();
     expect(doc.components?.securitySchemes?.bearerAuth).toBeDefined();
+    expect(doc.components?.securitySchemes?.cookieAuth).toBeDefined();
   });
 
   test("sets no-store cache header", async ({ request }) => {

@@ -1,10 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 import { PROVIDER_MODELS } from "@/lib/constants";
 import type { ComparisonResult } from "@/features/comparison/schemas";
 import {
   disableDatabaseConnections,
   enableDatabaseConnections,
 } from "../helpers/db-control";
+import { signInTestUser } from "../helpers/auth";
 
 type VoteResponse = {
   id: string;
@@ -35,12 +36,9 @@ async function registerFakeModels(request: {
   expect([201, 409]).toContain(req.status());
 }
 
-async function createComparisonWithOkResponses(request: {
-  post: (
-    url: string,
-    options?: { data?: unknown },
-  ) => Promise<{ status(): number; json(): Promise<unknown> }>;
-}): Promise<ComparisonResult> {
+async function createComparisonWithOkResponses(
+  request: APIRequestContext,
+): Promise<ComparisonResult> {
   const req = await request.post("/api/v1/comparisons", {
     data: {
       prompt: "Vote test prompt",
@@ -59,6 +57,33 @@ test.describe("Votes route tests", () => {
 
   test.beforeAll(async ({ request }) => {
     await registerFakeModels(request);
+  });
+
+  test.beforeEach(async ({ request }) => {
+    await signInTestUser(request);
+  });
+
+  test("votes routes require authentication", async ({
+    request,
+    playwright,
+    baseURL,
+  }) => {
+    const seeded = await createComparisonWithOkResponses(request);
+    const responseId = seeded.responses.find((r) => r.status === "ok")!.id;
+
+    const anon = await playwright.request.newContext({ baseURL });
+    try {
+      const postRes = await anon.post(
+        `/api/v1/comparisons/${seeded.id}/votes`,
+        { data: { responseId } },
+      );
+      expect(postRes.status()).toBe(401);
+
+      const getRes = await anon.get(`/api/v1/comparisons/${seeded.id}/vote`);
+      expect(getRes.status()).toBe(401);
+    } finally {
+      await anon.dispose();
+    }
   });
 
   test("POST should create a vote for a valid response", async ({ request }) => {
