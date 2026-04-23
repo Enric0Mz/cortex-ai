@@ -1,14 +1,12 @@
-import { PROVIDER_MODELS } from "@/lib/constants";
 import { ProviderError } from "@/lib/errors";
 import { ok, err } from "@/lib/result";
-import type { ProviderId } from "@/features/comparison/schemas";
+import type { ProviderId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter } from "../types";
 
 // Deterministic in-process adapter used when USE_FAKE_PROVIDERS=true.
 // Prompts control per-call behavior so e2e tests can exercise partial
 // failures and timeouts without mocking fetch across process boundaries.
-export function fakeAdapter(id: ProviderId): ProviderAdapter {
-  const model = PROVIDER_MODELS[id];
+export function fakeAdapter(id: ProviderId, model: string): ProviderAdapter {
   return {
     id,
     model,
@@ -47,7 +45,6 @@ export function fakeAdapter(id: ProviderId): ProviderAdapter {
       }
 
       return ok({
-        provider: id,
         aiModel: { name: model, provider: id },
         content: `[fake:${id}] ${prompt}`,
         inputTokens: prompt.length,

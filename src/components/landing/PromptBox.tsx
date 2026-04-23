@@ -1,30 +1,24 @@
-import { useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { useRouter } from "next/router";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+} from "react";
 import { MicIcon, PlusIcon, SubmitArrowIcon } from "@/components/landing/icons";
 import {
   MAX_MODELS_PER_COMPARISON,
   MIN_MODELS_PER_COMPARISON,
-  PROVIDER_MODELS,
 } from "@/lib/constants";
+import type { AiModelResponse, ProviderId } from "@/features/ai-models/schemas";
 
-type ProviderKey = keyof typeof PROVIDER_MODELS;
-
-type ModelChip = {
-  id: ProviderKey;
-  name: string;
-  color: string;
+const PROVIDER_COLORS: Record<ProviderId, string> = {
+  gemini: "#4285f4",
+  groq: "#7c3aed",
+  mistral: "#f97316",
+  openrouter: "#10a37f",
 };
-
-const FREE_MODEL_DISPLAY: Record<ProviderKey, { name: string; color: string }> =
-  {
-    gemini: { name: "Gemini 2.5 Flash", color: "#4285f4" },
-    groq: { name: "Llama 3.3 (Groq)", color: "#7c3aed" },
-    mistral: { name: "Mistral Small", color: "#f97316" },
-    openrouter: { name: "GPT-OSS-120B", color: "#10a37f" },
-  };
-
-const FREE_MODELS: readonly ModelChip[] = (
-  Object.keys(PROVIDER_MODELS) as ProviderKey[]
-).map((id) => ({ id, ...FREE_MODEL_DISPLAY[id] }));
 
 const PRO_MODELS: ReadonlyArray<{ id: string; name: string; color: string }> = [
   { id: "gpt4o", name: "GPT-4o", color: "#10a37f" },
@@ -33,14 +27,37 @@ const PRO_MODELS: ReadonlyArray<{ id: string; name: string; color: string }> = [
 ];
 
 export function PromptBox() {
+  const router = useRouter();
   const [value, setValue] = useState("");
-  const [active, setActive] = useState<Set<ProviderKey>>(
-    () => new Set(FREE_MODELS.map((m) => m.id)),
-  );
-  const [shakeId, setShakeId] = useState<ProviderKey | null>(null);
+  const [models, setModels] = useState<AiModelResponse[]>([]);
+  const [active, setActive] = useState<Set<string>>(new Set());
+  const [shakeId, setShakeId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const ready = value.trim().length > 0;
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/models")
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((list: AiModelResponse[]) => {
+        if (cancelled) return;
+        setModels(list);
+        setActive(
+          new Set(list.slice(0, MAX_MODELS_PER_COMPARISON).map((m) => m.id)),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setModels([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const canSubmit =
+    value.trim().length > 0 &&
+    active.size >= MIN_MODELS_PER_COMPARISON &&
+    !submitting;
 
   function resize() {
     const el = textareaRef.current;
@@ -54,18 +71,37 @@ export function PromptBox() {
     resize();
   }
 
-  function submit() {
-    // Wired to the /compare route in a later pass.
+  async function submit() {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/v1/comparisons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: value.trim(),
+          models: Array.from(active),
+        }),
+      });
+      if (!res.ok) {
+        console.error("comparison failed", res.status, await res.text());
+        return;
+      }
+      const result = await res.json();
+      router.push(`/compare?models=${active.size}&id=${result.id}`);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (ready) submit();
+      submit();
     }
   }
 
-  function toggle(id: ProviderKey) {
+  function toggle(id: string) {
     setActive((prev) => {
       if (prev.has(id)) {
         if (prev.size <= MIN_MODELS_PER_COMPARISON) return prev;
@@ -118,10 +154,11 @@ export function PromptBox() {
               type="button"
               aria-label="Comparar"
               onClick={submit}
+              disabled={!canSubmit}
               className={`flex h-[34px] w-[34px] items-center justify-center rounded-full text-white transition-[background-color,transform] active:scale-[0.93] ${
-                ready
+                canSubmit
                   ? "bg-[color:var(--purple)]"
-                  : "bg-[color:var(--ink)] hover:bg-[color:var(--purple)]"
+                  : "bg-[color:var(--ink)] hover:bg-[color:var(--purple)] disabled:opacity-60"
               }`}
             >
               <SubmitArrowIcon />
@@ -134,8 +171,10 @@ export function PromptBox() {
             Grátis
           </span>
 
-          {FREE_MODELS.map((model) => {
+          {models.map((model) => {
             const isActive = active.has(model.id);
+            const color =
+              PROVIDER_COLORS[model.provider as ProviderId] ?? "#7c5cbf";
             return (
               <button
                 key={model.id}
@@ -156,7 +195,7 @@ export function PromptBox() {
                 <span
                   aria-hidden="true"
                   className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                  style={{ background: model.color }}
+                  style={{ background: color }}
                 />
                 {model.name}
               </button>

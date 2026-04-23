@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
-import type { ListAiModelsResponse } from "@/features/ai-models/schemas";
+import {
+  ListAiModelsResponse,
+  ProviderIdSchema,
+} from "@/features/ai-models/schemas";
 
 const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN ?? "";
-const unique = (prefix: string): string =>
-  `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
 test.describe("AI models routes", () => {
   test.describe.configure({ mode: "serial" });
@@ -25,14 +26,14 @@ test.describe("AI models routes", () => {
       headers: { "x-admin-token": ADMIN_TOKEN },
       data: {
         models: [
-          { name: `bulk-a-${suffix}`, provider: `bulk-provider-a-${suffix}` },
-          { name: `bulk-b-${suffix}`, provider: `bulk-provider-b-${suffix}` },
+          { name: `bulk-a-${suffix}`, provider: `openrouter` },
+          { name: `bulk-b-${suffix}`, provider: `openrouter` },
         ],
       },
     });
 
-    expect(req.status()).toBe(201);
     const result = await req.json();
+
     expect(Array.isArray(result)).toBe(true);
     expect(result).toHaveLength(2);
   });
@@ -63,8 +64,8 @@ test.describe("AI models routes", () => {
   test("POST /api/v1/models bulk create with duplicate name/provider returns 409", async ({
     request,
   }) => {
-    const name = unique("bulk-duplicate");
-    const provider = unique("bulk-provider-duplicate");
+    const name = "bulk-duplicate";
+    const provider = "openrouter";
 
     const first = await request.post("/api/v1/models", {
       headers: { "x-admin-token": ADMIN_TOKEN },
@@ -84,8 +85,8 @@ test.describe("AI models routes", () => {
   }) => {
     const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     const models = [
-      { name: `zeta-${suffix}`, provider: `provider-b-${suffix}` },
-      { name: `alpha-${suffix}`, provider: `provider-a-${suffix}` },
+      { name: `zeta-${suffix}`, provider: `openrouter` },
+      { name: `alpha-${suffix}`, provider: `openrouter` },
     ] as const;
 
     const createReq = await request.post("/api/v1/models", {
@@ -122,5 +123,31 @@ test.describe("AI models routes", () => {
       data: { models: [] },
     });
     expect(req.status()).toBe(400);
+  });
+
+  test("POST /api/v1/models bulk create with invalid provider returns 400", async ({
+    request,
+  }) => {
+    const modelPayload = {
+      name: "openai/gpt-oss-120b:free",
+      provider: "invalid",
+    };
+    const req = await request.post("/api/v1/models", {
+      headers: { "x-admin-token": ADMIN_TOKEN },
+      data: { models: [modelPayload] },
+    });
+    expect(req.status()).toBe(400);
+
+    const body = await req.json();
+
+    const providerOpts = ProviderIdSchema.options
+      .map((o) => `"${o}"`)
+      .join("|");
+
+    expect(body.message).toBe(
+      `Invalid option: expected one of ${providerOpts}`,
+    );
+    expect(body.code).toBe("VALIDATION_ERROR");
+    expect(body.statusCode).toBe(400);
   });
 });

@@ -1,20 +1,15 @@
 import { z } from "@/openapi/zod";
 import { registry } from "@/openapi/registry";
 
-import { AiModelSchema } from "../ai-models/schemas";
-
-export const ProviderIdSchema = registry.register(
-  "ProviderId",
-  z
-    .enum(["gemini", "mistral", "groq", "openrouter"])
-    .openapi({ example: "gemini" }),
-);
-export type ProviderId = z.infer<typeof ProviderIdSchema>;
+import { AiModelSchema } from "@/features/ai-models/schemas";
+import {
+  MAX_MODELS_PER_COMPARISON,
+  MIN_MODELS_PER_COMPARISON,
+} from "@/lib/constants";
 
 export const ProviderResultSchema = registry.register(
   "ProviderResult",
   z.object({
-    provider: ProviderIdSchema,
     aiModel: AiModelSchema,
     content: z.string().openapi({ example: "Paris is the capital of France." }),
     inputTokens: z.number().int().nonnegative().openapi({ example: 12 }),
@@ -31,8 +26,7 @@ const SuccessfulResponseSchema = ProviderResultSchema.extend({
 });
 
 const FailedResponseSchema = z.object({
-  provider: ProviderIdSchema,
-  model: z.string(),
+  aiModel: AiModelSchema,
   status: z.literal("failed"),
   error: z.string(),
   latencyMs: z.number().int().nonnegative(),
@@ -58,12 +52,19 @@ export const CreateComparisonRequestSchema = registry.register(
       .min(1, "prompt is required")
       .max(4000, "prompt must be 4000 characters or fewer")
       .openapi({ example: "What is the capital of France?" }),
-    category: z
-      .string()
-      .trim()
-      .max(50)
-      .optional()
-      .openapi({ example: "geography" }),
+    models: z
+      .array(z.uuid())
+      .min(
+        MIN_MODELS_PER_COMPARISON,
+        `must include at least ${MIN_MODELS_PER_COMPARISON} models`,
+      )
+      .max(
+        MAX_MODELS_PER_COMPARISON,
+        `at most ${MAX_MODELS_PER_COMPARISON} models`,
+      )
+      .refine((ids) => new Set(ids).size === ids.length, {
+        message: "models must be unique",
+      }),
   }),
 );
 export type CreateComparisonRequest = z.infer<
@@ -75,7 +76,6 @@ export const ComparisonResultSchema = registry.register(
   z.object({
     id: z.uuid(),
     prompt: z.string(),
-    category: z.string().nullable(),
     createdAt: z.string().openapi({ format: "date-time" }),
     responses: z.array(ComparisonResponseItemSchema),
   }),

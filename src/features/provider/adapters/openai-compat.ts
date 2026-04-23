@@ -1,6 +1,7 @@
 import { ProviderError } from "@/lib/errors";
 import { tryCatch } from "@/lib/result";
-import type { ProviderId, ProviderResult } from "@/features/comparison/schemas";
+import type { ProviderResult } from "@/features/comparison/schemas";
+import type { ProviderId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter } from "../types";
 
 interface OpenAICompatConfig {
@@ -56,7 +57,6 @@ export function openAIChatAdapter(config: OpenAICompatConfig): ProviderAdapter {
           }
 
           return {
-            provider: config.id,
             aiModel: { name: config.model, provider: config.modelProvider },
             content,
             inputTokens: data.usage?.prompt_tokens ?? 0,

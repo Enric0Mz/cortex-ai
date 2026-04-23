@@ -1,4 +1,3 @@
-import { PROVIDER_MODELS } from "@/lib/constants";
 import { ProviderError } from "@/lib/errors";
 import { tryCatch } from "@/lib/result";
 import type { ProviderResult } from "@/features/comparison/schemas";
@@ -14,9 +13,7 @@ interface GeminiResponse {
   };
 }
 
-export function geminiAdapter(apiKey: string): ProviderAdapter {
-  const model = PROVIDER_MODELS.gemini;
-
+export function geminiAdapter(apiKey: string, model: string): ProviderAdapter {
   return {
     id: "gemini",
     model,
@@ -46,8 +43,7 @@ export function geminiAdapter(apiKey: string): ProviderAdapter {
           }
 
           return {
-            provider: "gemini",
-            aiModel: { name: model, provider: "google" },
+            aiModel: { name: model, provider: "gemini" },
             content,
             inputTokens: data.usageMetadata?.promptTokenCount ?? 0,
             outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,

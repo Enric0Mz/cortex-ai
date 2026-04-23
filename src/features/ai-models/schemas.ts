@@ -1,6 +1,14 @@
 import { z } from "@/openapi/zod";
 import { registry } from "@/openapi/registry";
 
+export const ProviderIdSchema = registry.register(
+  "ProviderId",
+  z
+    .enum(["gemini", "mistral", "groq", "openrouter"])
+    .openapi({ example: "gemini" }),
+);
+export type ProviderId = z.infer<typeof ProviderIdSchema>;
+
 export const AiModelSchema = registry.register(
   "AiModel",
   z.object({
@@ -20,12 +28,7 @@ export const CreateAiModelRequestSchema = registry.register(
       .min(1, "name is required")
       .max(100)
       .openapi({ example: "gemini-2.5-flash" }),
-    provider: z
-      .string()
-      .trim()
-      .min(1, "provider is required")
-      .max(50)
-      .openapi({ example: "google" }),
+    provider: ProviderIdSchema,
   }),
 );
 export type CreateAiModelRequest = z.infer<typeof CreateAiModelRequestSchema>;

@@ -1,16 +1,15 @@
 import { test, expect, type APIRequestContext } from "@playwright/test";
-import { PROVIDER_MODELS } from "@/lib/constants";
 import type { ComparisonResult } from "@/features/comparison/schemas";
 import {
   disableDatabaseConnections,
   enableDatabaseConnections,
 } from "../helpers/db-control";
 import { signInTestUser } from "../helpers/auth";
+import { registerFakeModels } from "../helpers/seed-models";
 
 type ResponseDetails = {
   id: string;
   comparisonId: string;
-  provider: string;
   aiModel: {
     name: string;
     provider: string;
@@ -23,26 +22,7 @@ type ResponseDetails = {
   createdAt: string;
 };
 
-async function registerFakeModels(request: {
-  post: (
-    url: string,
-    options?: { headers?: Record<string, string>; data?: unknown },
-  ) => Promise<{ status(): number }>;
-}): Promise<void> {
-  const adminToken = process.env.ADMIN_API_TOKEN ?? "";
-  const modelsToRegister = [
-    { name: PROVIDER_MODELS.gemini, provider: "gemini" },
-    { name: PROVIDER_MODELS.groq, provider: "groq" },
-    { name: PROVIDER_MODELS.mistral, provider: "mistral" },
-    { name: PROVIDER_MODELS.openrouter, provider: "openrouter" },
-  ];
-
-  const req = await request.post("/api/v1/models", {
-    headers: { "x-admin-token": adminToken },
-    data: { models: modelsToRegister },
-  });
-  expect([201, 409]).toContain(req.status());
-}
+let modelIds: string[] = [];
 
 async function createComparisonWithOkResponses(
   request: APIRequestContext,
@@ -51,7 +31,7 @@ async function createComparisonWithOkResponses(
   const req = await request.post("/api/v1/comparisons", {
     data: {
       prompt: "Response lookup test prompt",
-      category: "responses",
+      models: modelIds,
     },
   });
   expect(req.status()).toBe(200);
@@ -65,7 +45,8 @@ test.describe("Responses route tests", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({ request }) => {
-    await registerFakeModels(request);
+    const seeded = await registerFakeModels(request);
+    modelIds = seeded.map((m) => m.id);
   });
 
   test("GET should return full response payload for valid responseId", async ({
@@ -80,7 +61,6 @@ test.describe("Responses route tests", () => {
     const result = (await req.json()) as ResponseDetails;
     expect(result.id).toBe(okResponse.id);
     expect(result.comparisonId).toBe(comparison.id);
-    expect(result.provider).toBe(okResponse.provider);
     expect(result.aiModel.name).toBe(okResponse.aiModel.name);
     expect(result.aiModel.provider).toBe(okResponse.aiModel.provider);
     expect(typeof result.content).toBe("string");

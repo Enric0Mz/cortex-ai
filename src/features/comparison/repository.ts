@@ -3,9 +3,37 @@ import { ServiceUnavailableError } from "@/lib/errors";
 import { tryCatch, type Result } from "@/lib/result";
 import {
   type CreateComparisonRequest,
-  type ProviderId,
   type ProviderResult,
 } from "@/features/comparison/schemas";
+import { ProviderId } from "@/features/ai-models/schemas";
+
+export type ModelSelection = {
+  id: string;
+  name: string;
+  provider: ProviderId;
+};
+
+export async function FindModelsByIds(
+  ids: string[],
+): Promise<Result<ModelSelection[], ServiceUnavailableError>> {
+  return tryCatch(
+    async () => {
+      const rows = await prisma.aiModel.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, name: true, provider: true },
+      });
+      return rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        provider: r.provider as ProviderId,
+      }));
+    },
+    (cause) => {
+      console.error("[FindModelsByIds] DB error:", cause);
+      return new ServiceUnavailableError("database", cause);
+    },
+  );
+}
 
 export async function CreateComparison(
   userId: string,
@@ -17,7 +45,6 @@ export async function CreateComparison(
         data: {
           userId,
           prompt: input.prompt,
-          category: input.category ?? null,
         },
         select: { id: true, createdAt: true },
       });
@@ -33,7 +60,7 @@ export async function CreateComparison(
 export async function CreateComparisonResponse(
   comparisonId: string,
   results: ProviderResult[],
-): Promise<Result<Map<ProviderId, string>, ServiceUnavailableError>> {
+): Promise<Result<Map<string, string>, ServiceUnavailableError>> {
   if (results.length === 0) {
     return { ok: true, value: new Map() };
   }
@@ -63,13 +90,13 @@ export async function CreateComparisonResponse(
       });
 
       if (persistableResults.length === 0) {
-        return new Map<ProviderId, string>();
+        return new Map<string, string>();
       }
 
       const rows = await prisma.response.createManyAndReturn({
         data: persistableResults.map((r) => ({
           comparisonId,
-          provider: r.provider,
+          provider: r.aiModel.provider,
           aiModelId: aiModelIds.get(`${r.aiModel.name}|${r.aiModel.provider}`)!,
           content: r.content,
           inputTokens: r.inputTokens,
@@ -77,13 +104,21 @@ export async function CreateComparisonResponse(
           costUsd: r.costUsd,
           latencyMs: r.latencyMs,
         })),
-        select: { id: true, provider: true },
+        select: { id: true, provider: true, aiModelId: true },
       });
-      const byProvider = new Map<ProviderId, string>();
-      for (const row of rows) {
-        byProvider.set(row.provider as ProviderId, row.id);
+
+      const modelById = new Map<string, { name: string; provider: string }>();
+      for (const m of registeredModels) {
+        modelById.set(m.id, { name: m.name, provider: m.provider });
       }
-      return byProvider;
+
+      const byModelKey = new Map<string, string>();
+      for (const row of rows) {
+        const m = modelById.get(row.aiModelId);
+        if (!m) continue;
+        byModelKey.set(`${m.name}|${m.provider}`, row.id);
+      }
+      return byModelKey;
     },
     (cause) => {
       console.error("[CreateComparisonResponse] DB error:", cause);
