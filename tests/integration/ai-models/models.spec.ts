@@ -5,8 +5,6 @@ import {
 } from "@/features/ai-models/schemas";
 
 const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN ?? "";
-const unique = (prefix: string): string =>
-  `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
 test.describe("AI models routes", () => {
   test.describe.configure({ mode: "serial" });
