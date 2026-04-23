@@ -11,10 +11,7 @@ import {
   MAX_MODELS_PER_COMPARISON,
   MIN_MODELS_PER_COMPARISON,
 } from "@/lib/constants";
-import type {
-  AiModelResponse,
-  ProviderId,
-} from "@/features/ai-models/schemas";
+import type { AiModelResponse, ProviderId } from "@/features/ai-models/schemas";
 
 const PROVIDER_COLORS: Record<ProviderId, string> = {
   gemini: "#4285f4",
