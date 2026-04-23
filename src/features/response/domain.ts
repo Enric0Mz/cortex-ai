@@ -1,6 +1,6 @@
 import { NotFoundError, ServiceUnavailableError } from "@/lib/errors";
 import { ok, err, type Result } from "@/lib/result";
-import { ProviderIdSchema } from "@/features/comparison/schemas";
+import { ProviderIdSchema } from "@/features/ai-models/schemas";
 import type { ResponseDetails } from "./schemas";
 import { findResponseById } from "./repository";
 

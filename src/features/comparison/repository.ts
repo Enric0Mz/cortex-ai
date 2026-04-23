@@ -3,9 +3,9 @@ import { ServiceUnavailableError } from "@/lib/errors";
 import { tryCatch, type Result } from "@/lib/result";
 import {
   type CreateComparisonRequest,
-  type ProviderId,
   type ProviderResult,
 } from "@/features/comparison/schemas";
+import { ProviderId } from "@/features/ai-models/schemas";
 
 export async function CreateComparison(
   userId: string,

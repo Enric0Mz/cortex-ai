@@ -1,6 +1,7 @@
 import { ProviderError } from "@/lib/errors";
 import { tryCatch } from "@/lib/result";
-import type { ProviderId, ProviderResult } from "@/features/comparison/schemas";
+import type { ProviderResult } from "@/features/comparison/schemas";
+import type { ProviderId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter } from "../types";
 
 interface OpenAICompatConfig {

@@ -1,15 +1,7 @@
 import { z } from "@/openapi/zod";
 import { registry } from "@/openapi/registry";
 
-import { AiModelSchema } from "../ai-models/schemas";
-
-export const ProviderIdSchema = registry.register(
-  "ProviderId",
-  z
-    .enum(["gemini", "mistral", "groq", "openrouter"])
-    .openapi({ example: "gemini" }),
-);
-export type ProviderId = z.infer<typeof ProviderIdSchema>;
+import { AiModelSchema, ProviderIdSchema } from "@/features/ai-models/schemas";
 
 export const ProviderResultSchema = registry.register(
   "ProviderResult",

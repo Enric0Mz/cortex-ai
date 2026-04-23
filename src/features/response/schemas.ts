@@ -1,7 +1,7 @@
 import { z } from "@/openapi/zod";
 import { registry } from "@/openapi/registry";
 import { AiModelSchema } from "@/features/ai-models/schemas";
-import { ProviderIdSchema } from "@/features/comparison/schemas";
+import { ProviderIdSchema } from "@/features/ai-models/schemas";
 
 export const ResponseDetailsSchema = registry.register(
   "ResponseDetails",
