@@ -1,7 +1,7 @@
 import { z } from "@/openapi/zod";
 import { registry } from "@/openapi/registry";
 
-import { AiModelSchema, ProviderIdSchema } from "@/features/ai-models/schemas";
+import { AiModelSchema } from "@/features/ai-models/schemas";
 import {
   MAX_MODELS_PER_COMPARISON,
   MIN_MODELS_PER_COMPARISON,
@@ -10,7 +10,6 @@ import {
 export const ProviderResultSchema = registry.register(
   "ProviderResult",
   z.object({
-    provider: ProviderIdSchema,
     aiModel: AiModelSchema,
     content: z.string().openapi({ example: "Paris is the capital of France." }),
     inputTokens: z.number().int().nonnegative().openapi({ example: 12 }),
@@ -27,8 +26,7 @@ const SuccessfulResponseSchema = ProviderResultSchema.extend({
 });
 
 const FailedResponseSchema = z.object({
-  provider: ProviderIdSchema,
-  model: z.string(),
+  aiModel: AiModelSchema,
   status: z.literal("failed"),
   error: z.string(),
   latencyMs: z.number().int().nonnegative(),

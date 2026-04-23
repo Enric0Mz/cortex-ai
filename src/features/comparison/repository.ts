@@ -96,7 +96,7 @@ export async function CreateComparisonResponse(
       const rows = await prisma.response.createManyAndReturn({
         data: persistableResults.map((r) => ({
           comparisonId,
-          provider: r.provider,
+          provider: r.aiModel.provider,
           aiModelId: aiModelIds.get(`${r.aiModel.name}|${r.aiModel.provider}`)!,
           content: r.content,
           inputTokens: r.inputTokens,

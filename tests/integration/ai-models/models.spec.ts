@@ -73,7 +73,6 @@ test.describe("AI models routes", () => {
       headers: { "x-admin-token": ADMIN_TOKEN },
       data: { models: [{ name, provider }] },
     });
-    console.log(await first.json());
     expect(first.status()).toBe(201);
 
     const second = await request.post("/api/v1/models", {

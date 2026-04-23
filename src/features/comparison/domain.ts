@@ -54,8 +54,7 @@ export async function runComparison(
       );
       if (!id) {
         return {
-          provider: value.provider,
-          model: value.aiModel.name,
+          aiModel: value.aiModel,
           status: "failed" as const,
           error: "model not registered",
           latencyMs: value.latencyMs,
@@ -64,8 +63,7 @@ export async function runComparison(
       return { id, status: "ok" as const, ...value };
     }
     return {
-      provider: entry.adapter.id,
-      model: entry.adapter.model,
+      aiModel: { name: entry.adapter.model, provider: entry.adapter.id },
       status: "failed" as const,
       error: entry.result.error.message,
       latencyMs: entry.fallbackLatency,

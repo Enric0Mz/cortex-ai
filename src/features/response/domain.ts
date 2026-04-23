@@ -1,6 +1,5 @@
 import { NotFoundError, ServiceUnavailableError } from "@/lib/errors";
 import { ok, err, type Result } from "@/lib/result";
-import { ProviderIdSchema } from "@/features/ai-models/schemas";
 import type { ResponseDetails } from "./schemas";
 import { findResponseById } from "./repository";
 
@@ -15,7 +14,6 @@ export async function getResponseById(
   return ok({
     id: row.id,
     comparisonId: row.comparisonId,
-    provider: ProviderIdSchema.parse(row.provider),
     aiModel: row.aiModel,
     content: row.content,
     inputTokens: row.inputTokens,

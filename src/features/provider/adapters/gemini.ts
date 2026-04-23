@@ -43,7 +43,6 @@ export function geminiAdapter(apiKey: string, model: string): ProviderAdapter {
           }
 
           return {
-            provider: "gemini",
             aiModel: { name: model, provider: "gemini" },
             content,
             inputTokens: data.usageMetadata?.promptTokenCount ?? 0,

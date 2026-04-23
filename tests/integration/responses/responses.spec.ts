@@ -10,7 +10,6 @@ import { registerFakeModels } from "../helpers/seed-models";
 type ResponseDetails = {
   id: string;
   comparisonId: string;
-  provider: string;
   aiModel: {
     name: string;
     provider: string;
@@ -62,7 +61,6 @@ test.describe("Responses route tests", () => {
     const result = (await req.json()) as ResponseDetails;
     expect(result.id).toBe(okResponse.id);
     expect(result.comparisonId).toBe(comparison.id);
-    expect(result.provider).toBe(okResponse.provider);
     expect(result.aiModel.name).toBe(okResponse.aiModel.name);
     expect(result.aiModel.provider).toBe(okResponse.aiModel.provider);
     expect(typeof result.content).toBe("string");

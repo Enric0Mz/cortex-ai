@@ -45,7 +45,6 @@ export function fakeAdapter(id: ProviderId, model: string): ProviderAdapter {
       }
 
       return ok({
-        provider: id,
         aiModel: { name: model, provider: id },
         content: `[fake:${id}] ${prompt}`,
         inputTokens: prompt.length,

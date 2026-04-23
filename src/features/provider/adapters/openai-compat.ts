@@ -57,7 +57,6 @@ export function openAIChatAdapter(config: OpenAICompatConfig): ProviderAdapter {
           }
 
           return {
-            provider: config.id,
             aiModel: { name: config.model, provider: config.modelProvider },
             content,
             inputTokens: data.usage?.prompt_tokens ?? 0,
