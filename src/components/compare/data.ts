@@ -1,6 +1,4 @@
-import { PROVIDER_MODELS } from "@/lib/constants";
-
-export type ProviderKey = keyof typeof PROVIDER_MODELS;
+export type ProviderKey = "gemini" | "mistral" | "groq" | "openrouter";
 
 export type MockModel = {
   id: ProviderKey;
