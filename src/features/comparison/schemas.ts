@@ -2,6 +2,10 @@ import { z } from "@/openapi/zod";
 import { registry } from "@/openapi/registry";
 
 import { AiModelSchema, ProviderIdSchema } from "@/features/ai-models/schemas";
+import {
+  MAX_MODELS_PER_COMPARISON,
+  MIN_MODELS_PER_COMPARISON,
+} from "@/lib/constants";
 
 export const ProviderResultSchema = registry.register(
   "ProviderResult",
@@ -50,12 +54,19 @@ export const CreateComparisonRequestSchema = registry.register(
       .min(1, "prompt is required")
       .max(4000, "prompt must be 4000 characters or fewer")
       .openapi({ example: "What is the capital of France?" }),
-    category: z
-      .string()
-      .trim()
-      .max(50)
-      .optional()
-      .openapi({ example: "geography" }),
+    models: z
+      .array(z.uuid())
+      .min(
+        MIN_MODELS_PER_COMPARISON,
+        `must include at least ${MIN_MODELS_PER_COMPARISON} models`,
+      )
+      .max(
+        MAX_MODELS_PER_COMPARISON,
+        `at most ${MAX_MODELS_PER_COMPARISON} models`,
+      )
+      .refine((ids) => new Set(ids).size === ids.length, {
+        message: "models must be unique",
+      }),
   }),
 );
 export type CreateComparisonRequest = z.infer<
@@ -67,7 +78,6 @@ export const ComparisonResultSchema = registry.register(
   z.object({
     id: z.uuid(),
     prompt: z.string(),
-    category: z.string().nullable(),
     createdAt: z.string().openapi({ format: "date-time" }),
     responses: z.array(ComparisonResponseItemSchema),
   }),

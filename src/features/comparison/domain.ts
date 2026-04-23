@@ -1,5 +1,5 @@
 import { PROVIDER_TIMEOUT_MS } from "@/lib/constants";
-import { ServiceUnavailableError } from "@/lib/errors";
+import { ServiceUnavailableError, ValidationError } from "@/lib/errors";
 import { err, type Result } from "@/lib/result";
 import {
   type ComparisonResponseItem,
@@ -7,17 +7,29 @@ import {
   type CreateComparisonRequest,
 } from "@/features/comparison/schemas";
 import { buildAdapters } from "@/features/provider/registry";
-import { CreateComparison, CreateComparisonResponse } from "./repository";
+import {
+  CreateComparison,
+  CreateComparisonResponse,
+  FindModelsByIds,
+} from "./repository";
 
 export async function runComparison(
   userId: string,
   input: CreateComparisonRequest,
-): Promise<Result<ComparisonResult, ServiceUnavailableError>> {
+): Promise<
+  Result<ComparisonResult, ServiceUnavailableError | ValidationError>
+> {
+  const modelsResult = await FindModelsByIds(input.models);
+  if (!modelsResult.ok) return err(modelsResult.error);
+  if (modelsResult.value.length !== input.models.length) {
+    return err(new ValidationError("one or more model ids are unknown"));
+  }
+  const selections = modelsResult.value;
   const comparisonResult = await CreateComparison(userId, input);
   if (!comparisonResult.ok) return err(comparisonResult.error);
   const { id: comparisonId, createdAt } = comparisonResult.value;
 
-  const adapters = buildAdapters();
+  const adapters = buildAdapters(selections);
   const settled = await Promise.all(
     adapters.map(async (adapter) => {
       const signal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
@@ -32,12 +44,14 @@ export async function runComparison(
   );
   const persistResult = await CreateComparisonResponse(comparisonId, successes);
   if (!persistResult.ok) return err(persistResult.error);
-  const idsByProvider = persistResult.value;
+  const idsByModelKey = persistResult.value;
 
   const responses: ComparisonResponseItem[] = settled.map((entry) => {
     if (entry.result.ok) {
       const value = entry.result.value;
-      const id = idsByProvider.get(value.provider);
+      const id = idsByModelKey.get(
+        `${value.aiModel.name}|${value.aiModel.provider}`,
+      );
       if (!id) {
         return {
           provider: value.provider,
@@ -63,7 +77,6 @@ export async function runComparison(
     value: {
       id: comparisonId,
       prompt: input.prompt,
-      category: input.category ?? null,
       createdAt: createdAt.toISOString(),
       responses,
     },
