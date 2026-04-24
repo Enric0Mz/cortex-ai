@@ -23,15 +23,8 @@ import {
   MAX_MODELS_PER_COMPARISON,
   MIN_MODELS_PER_COMPARISON,
 } from "@/lib/constants";
+import { PROVIDER_LABELS } from "@/lib/providers";
 import type { AiModelResponse } from "@/features/ai-models/schemas";
-
-const PRO_MODELS = [
-  "gpt4o",
-  "claude",
-  "geminipro",
-  "gemini-2.5-pro",
-  "openai/gpt-4o",
-];
 
 function formatModelName(rawName: string) {
   let name = rawName;
@@ -40,22 +33,25 @@ function formatModelName(rawName: string) {
   return name
     .split("-")
     .map((word) => {
-      if (word === "gpt" || word === "oss" || word === "b")
+      if (word === "gpt" || word === "oss" || word === "b") {
         return word.toUpperCase();
-      if (word === "20b" || word === "120b" || word === "70b")
+      }
+      if (word === "20b" || word === "120b" || word === "70b") {
         return word.toUpperCase();
+      }
       return word.charAt(0).toUpperCase() + word.slice(1);
     })
     .join(" ")
     .replace(":free", "");
 }
 
+function isDefaultModel(model: AiModelResponse) {
+  const name = model.name.toLowerCase();
+  return name.includes("llama-3") || name.includes("mistral-small");
+}
+
 function getVendor(model: AiModelResponse) {
-  if (model.name.includes("/")) return model.name.split("/")[0].toUpperCase();
-  if (model.provider === "gemini") return "GOOGLE";
-  if (model.provider === "groq") return "GROQ";
-  if (model.provider === "mistral") return "MISTRAL AI";
-  return model.provider.toUpperCase();
+  return PROVIDER_LABELS[model.provider].toUpperCase();
 }
 
 export function PromptBox() {
@@ -71,30 +67,20 @@ export function PromptBox() {
 
   useEffect(() => {
     let cancelled = false;
+
     fetch("/api/v1/models")
       .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
       .then((list: AiModelResponse[]) => {
         if (cancelled) return;
         setModels(list);
 
-        // Find default models: Llama 3.x and Mistral small/8b
-        const defaultModels = list.filter((m) => {
-          const nameLower = m.name.toLowerCase();
-          return (
-            nameLower.includes("llama-3") || nameLower.includes("mistral-small")
-          );
-        });
+        const freeModels = list.filter((model) => model.isFree);
+        const defaultModels = freeModels.filter(isDefaultModel);
+        const initialActive =
+          defaultModels.length >= MIN_MODELS_PER_COMPARISON
+            ? defaultModels
+            : freeModels.slice(0, MIN_MODELS_PER_COMPARISON);
 
-        // Use defaults if found, otherwise fallback to first non-pro models
-        let initialActive = defaultModels;
-        if (initialActive.length < MIN_MODELS_PER_COMPARISON) {
-          const freeModels = list.filter(
-            (m) => !PRO_MODELS.some((p) => m.name.includes(p) || m.id === p),
-          );
-          initialActive = freeModels.slice(0, MIN_MODELS_PER_COMPARISON);
-        }
-
-        // Respect MAX_MODELS_PER_COMPARISON just in case
         setActive(
           new Set(
             initialActive.slice(0, MAX_MODELS_PER_COMPARISON).map((m) => m.id),
@@ -104,6 +90,7 @@ export function PromptBox() {
       .catch(() => {
         if (!cancelled) setModels([]);
       });
+
     return () => {
       cancelled = true;
     };
@@ -170,13 +157,6 @@ export function PromptBox() {
 
   const activeSelections = models.filter((m) => active.has(m.id));
 
-  function getSelectedText() {
-    if (activeSelections.length === 0) return "Nenhum modelo selecionado";
-    const names = activeSelections.map((m) => formatModelName(m.name));
-    if (names.length <= 2) return names.join(", ");
-    return `${names.slice(0, 2).join(", ")} +${names.length - 2} mais`;
-  }
-
   const filteredModels = useMemo(() => {
     return models.filter((m) =>
       m.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -193,10 +173,16 @@ export function PromptBox() {
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   }, [filteredModels]);
 
+  function getSelectedText() {
+    if (activeSelections.length === 0) return "Nenhum modelo selecionado";
+    const names = activeSelections.map((m) => formatModelName(m.name));
+    if (names.length <= 2) return names.join(", ");
+    return `${names.slice(0, 2).join(", ")} +${names.length - 2} mais`;
+  }
+
   return (
     <div className="relative z-[2] mx-auto w-full max-w-[720px]">
       <div className="overflow-hidden rounded-[20px] border border-[color:var(--border)] bg-white shadow-[0_2px_8px_rgba(26,20,16,0.05),0_12px_32px_-8px_rgba(124,92,191,0.10)] transition-[border-color,box-shadow] duration-200 focus-within:border-[color:var(--purple-light)] focus-within:shadow-[0_2px_8px_rgba(26,20,16,0.05),0_16px_40px_-8px_rgba(124,92,191,0.16)]">
-        {/* Input Area */}
         <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 pl-5">
           <button
             type="button"
@@ -240,7 +226,6 @@ export function PromptBox() {
           </div>
         </div>
 
-        {/* Collapsed State */}
         {!isSelectorOpen && (
           <div className="flex items-center justify-between border-t border-[color:var(--bg2)] px-4 py-3">
             <div className="flex items-center gap-2.5">
@@ -273,7 +258,6 @@ export function PromptBox() {
           </div>
         )}
 
-        {/* Expanded State */}
         {isSelectorOpen && (
           <div className="border-t border-[color:var(--bg2)]">
             <div className="flex items-center gap-2.5 border-b border-[color:var(--bg2)] bg-[#f5f1e8] px-4 py-3">
@@ -310,17 +294,20 @@ export function PromptBox() {
                   <ul>
                     {vendorModels.map((model) => {
                       const isActive = active.has(model.id);
-                      const isPro = PRO_MODELS.some(
-                        (p) => model.name.includes(p) || model.id === p,
-                      );
+                      const isLocked = !model.isFree;
                       const chrome = providerChrome(model.provider, model.name);
 
                       return (
                         <li key={model.id}>
                           <button
                             type="button"
-                            disabled={isPro}
-                            onClick={() => !isPro && toggle(model.id)}
+                            disabled={isLocked}
+                            title={
+                              isLocked
+                                ? "Faça upgrade para comparar com este modelo."
+                                : undefined
+                            }
+                            onClick={() => !isLocked && toggle(model.id)}
                             style={
                               shakeId === model.id
                                 ? { animation: "shake 260ms ease-out" }
@@ -358,12 +345,12 @@ export function PromptBox() {
                             </div>
                             <span
                               className={`rounded-md px-[5px] py-[3px] font-mono text-[9px] font-bold tracking-[0.04em] uppercase ${
-                                isPro
+                                isLocked
                                   ? "bg-[color:var(--bg2)] text-ink-3"
                                   : "bg-[#eaf6f1] text-[color:var(--success)]"
                               }`}
                             >
-                              {isPro ? "Pro" : "Grátis"}
+                              {isLocked ? "Pro" : "Grátis"}
                             </span>
                           </button>
                         </li>
