@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
   CreateAiModelsBulkRequestSchema,
+  ListAiModelsQuerySchema,
   type CreateAiModelsBulkResponse,
   type ListAiModelsResponse,
 } from "@/features/ai-models/schemas";
@@ -8,7 +9,7 @@ import { createModelsBulk, listModels } from "@/features/ai-models/domain";
 import type { ErrorResponse } from "@/openapi/common";
 import { AppError } from "@/lib/errors";
 import { toErrorResponse } from "@/lib/http";
-import parseBody from "@/lib/parse";
+import parseBody, { parseQuery } from "@/lib/parse";
 import { requireAdminToken } from "@/lib/auth";
 
 type ResponseBody =
@@ -52,7 +53,13 @@ export default async function handler(
     return;
   }
 
-  const listResult = await listModels();
+  const parsed = parseQuery(ListAiModelsQuerySchema, req.query);
+  if (!parsed.ok) {
+    res.status(parsed.error.statusCode).json(toErrorResponse(parsed.error));
+    return;
+  }
+
+  const listResult = await listModels(parsed.value);
   if (!listResult.ok) {
     res
       .status(listResult.error.statusCode)

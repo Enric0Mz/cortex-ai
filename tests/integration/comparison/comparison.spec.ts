@@ -8,18 +8,58 @@ import {
 
 test.describe("Comparison route tests", () => {
   let modelIds: string[] = [];
+  let paidModelId: string;
 
   test.beforeAll(async ({ request }) => {
     const seeded = await registerFakeModels(request);
     modelIds = seeded.map((m) => m.id);
     expect(modelIds.length).toBe(4);
+
+    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+    const paidReq = await request.post("/api/v1/models", {
+      headers: { "x-admin-token": process.env.ADMIN_API_TOKEN ?? "" },
+      data: {
+        models: [
+          {
+            name: `openai/gpt-4o-${suffix}`,
+            provider: "openrouter",
+            isFree: false,
+          },
+        ],
+      },
+    });
+    expect(paidReq.status()).toBe(201);
+    paidModelId = ((await paidReq.json()) as Array<{ id: string }>)[0].id;
   });
 
-  test("POST /api/v1/comparisons requires authentication", async ({ anon }) => {
+  test("POST /api/v1/comparisons allows anonymous requests for free models", async ({
+    anon,
+  }) => {
     const req = await anon.post("/api/v1/comparisons", {
       data: { prompt: "hi", models: modelIds },
     });
-    expect(req.status()).toBe(401);
+    expect(req.status()).toBe(200);
+  });
+
+  test("POST /api/v1/comparisons rejects anonymous paid models", async ({
+    anon,
+  }) => {
+    const req = await anon.post("/api/v1/comparisons", {
+      data: { prompt: "hi", models: [modelIds[0], paidModelId] },
+    });
+    expect(req.status()).toBe(400);
+    await expect(req.json()).resolves.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
+  });
+
+  test("POST /api/v1/comparisons allows authenticated paid models", async ({
+    ctx,
+  }) => {
+    const req = await ctx.post("/api/v1/comparisons", {
+      data: { prompt: "hi", models: [modelIds[0], paidModelId] },
+    });
+    expect(req.status()).toBe(200);
   });
 
   test("Comparing 4 models should return an array with 4 results", async ({

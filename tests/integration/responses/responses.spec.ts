@@ -13,6 +13,7 @@ type ResponseDetails = {
   aiModel: {
     name: string;
     provider: string;
+    isFree: boolean;
   };
   content: string;
   inputTokens: number;
@@ -63,6 +64,7 @@ test.describe("Responses route tests", () => {
     expect(result.comparisonId).toBe(comparison.id);
     expect(result.aiModel.name).toBe(okResponse.aiModel.name);
     expect(result.aiModel.provider).toBe(okResponse.aiModel.provider);
+    expect(result.aiModel.isFree).toBe(okResponse.aiModel.isFree);
     expect(typeof result.content).toBe("string");
     expect(typeof result.createdAt).toBe("string");
   });

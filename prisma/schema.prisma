@@ -23,12 +23,12 @@ model User {
 
 model Comparison {
   id        String     @id @default(uuid())
-  userId    String     @map("user_id")
+  userId    String?    @map("user_id")
   prompt    String
   category  String?
   createdAt DateTime   @default(now()) @map("created_at")
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   responses Response[]
   votes     Vote[]
 
@@ -75,9 +75,10 @@ model Vote {
 }
 
 model AiModel {
-  id String @id @default(uuid())
-  name String
+  id       String  @id @default(uuid())
+  name     String
   provider String
+  isFree   Boolean @default(false) @map("is_free")
 
   responses Response[]
 

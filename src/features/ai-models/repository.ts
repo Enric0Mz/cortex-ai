@@ -5,6 +5,8 @@ import type {
   CreateAiModelsBulkRequest,
   CreateAiModelsBulkResponse,
   AiModelResponse,
+  ListAiModelsQuery,
+  ProviderId,
 } from "@/features/ai-models/schemas";
 
 function isUniqueConstraintError(cause: unknown): boolean {
@@ -16,16 +18,23 @@ function isUniqueConstraintError(cause: unknown): boolean {
   );
 }
 
-export async function listAiModels(): Promise<
-  Result<AiModelResponse[], ServiceUnavailableError>
-> {
+export async function listAiModels(
+  filter?: ListAiModelsQuery,
+): Promise<Result<AiModelResponse[], ServiceUnavailableError>> {
   return tryCatch(
     async () => {
       const rows = await prisma.aiModel.findMany({
+        where: {
+          provider: filter?.provider,
+          isFree: filter?.isFree,
+        },
         orderBy: [{ provider: "asc" }, { name: "asc" }],
-        select: { id: true, name: true, provider: true },
+        select: { id: true, name: true, provider: true, isFree: true },
       });
-      return rows;
+      return rows.map((row) => ({
+        ...row,
+        provider: row.provider as ProviderId,
+      }));
     },
     (cause) => {
       console.error("[listAiModels] DB error:", cause);
@@ -42,9 +51,14 @@ export async function findAiModelByNameProvider(
     async () => {
       const row = await prisma.aiModel.findUnique({
         where: { name_provider: { name, provider } },
-        select: { id: true, name: true, provider: true },
+        select: { id: true, name: true, provider: true, isFree: true },
       });
-      return row;
+      return row
+        ? {
+            ...row,
+            provider: row.provider as ProviderId,
+          }
+        : null;
     },
     (cause) => {
       console.error("[findAiModelByNameProvider] DB error:", cause);
@@ -67,10 +81,14 @@ export async function createAiModelsBulk(
         data: input.models.map((model) => ({
           name: model.name,
           provider: model.provider,
+          isFree: model.isFree,
         })),
-        select: { id: true, name: true, provider: true },
+        select: { id: true, name: true, provider: true, isFree: true },
       });
-      return rows;
+      return rows.map((row) => ({
+        ...row,
+        provider: row.provider as ProviderId,
+      }));
     },
     (cause) => {
       if (isUniqueConstraintError(cause)) {

@@ -15,7 +15,11 @@ import type { ProviderAdapter, StreamYield } from "../types";
 // Two adapters that share an id (same provider, different models) react to
 // `<id>` sentinels together — tests should pick distinct providers or assert
 // aggregates.
-export function fakeAdapter(id: ProviderId, model: string): ProviderAdapter {
+export function fakeAdapter(
+  id: ProviderId,
+  model: string,
+  isFree: boolean,
+): ProviderAdapter {
   return {
     id,
     model,
@@ -44,7 +48,7 @@ export function fakeAdapter(id: ProviderId, model: string): ProviderAdapter {
       }
 
       return ok({
-        aiModel: { name: model, provider: id },
+        aiModel: { name: model, provider: id, isFree },
         content: `[fake:${id}] ${prompt}`,
         inputTokens: prompt.length,
         outputTokens: prompt.length + id.length,
@@ -53,7 +57,7 @@ export function fakeAdapter(id: ProviderId, model: string): ProviderAdapter {
       });
     },
     streamGenerate(prompt, signal) {
-      return fakeStream(id, model, prompt, signal);
+      return fakeStream(id, model, isFree, prompt, signal);
     },
   };
 }
@@ -61,6 +65,7 @@ export function fakeAdapter(id: ProviderId, model: string): ProviderAdapter {
 async function* fakeStream(
   id: ProviderId,
   model: string,
+  isFree: boolean,
   prompt: string,
   signal: AbortSignal,
 ): AsyncIterable<StreamYield> {
@@ -115,7 +120,7 @@ async function* fakeStream(
   yield {
     type: "done",
     result: {
-      aiModel: { name: model, provider: id },
+      aiModel: { name: model, provider: id, isFree },
       content: emitted,
       inputTokens: prompt.length,
       outputTokens: emitted.length,

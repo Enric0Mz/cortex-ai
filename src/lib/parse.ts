@@ -19,6 +19,22 @@ export default function parseBody<T extends z.ZodRawShape>(
   return ok(parsed.data);
 }
 
+export function parseQuery<T>(
+  schema: z.ZodType<T>,
+  query: unknown,
+): Result<T, ValidationError> {
+  const parsed = schema.safeParse(query);
+
+  if (!parsed.success) {
+    return err(
+      new ValidationError(
+        parsed.error.issues[0]?.message ?? "invalid request query",
+      ),
+    );
+  }
+  return ok(parsed.data);
+}
+
 const UuidSchema = z.uuid();
 
 export function parseUuidParam(

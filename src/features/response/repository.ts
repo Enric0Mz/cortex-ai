@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { ServiceUnavailableError } from "@/lib/errors";
 import { tryCatch, type Result } from "@/lib/result";
+import type { ProviderId } from "@/features/ai-models/schemas";
 
 type ResponseRow = {
   id: string;
   comparisonId: string;
   provider: string;
-  aiModel: { name: string; provider: string };
+  aiModel: { name: string; provider: ProviderId; isFree: boolean };
   content: string;
   inputTokens: number;
   outputTokens: number;
@@ -30,6 +31,7 @@ export async function findResponseById(
             select: {
               name: true,
               provider: true,
+              isFree: true,
             },
           },
           content: true,
@@ -40,7 +42,15 @@ export async function findResponseById(
           createdAt: true,
         },
       });
-      return row;
+      return row
+        ? {
+            ...row,
+            aiModel: {
+              ...row.aiModel,
+              provider: row.aiModel.provider as ProviderId,
+            },
+          }
+        : null;
     },
     (cause) => new ServiceUnavailableError("database", cause),
   );

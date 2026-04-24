@@ -13,7 +13,8 @@ export const AiModelSchema = registry.register(
   "AiModel",
   z.object({
     name: z.string().openapi({ example: "gemini-2.5-flash" }),
-    provider: z.string().openapi({ example: "google" }),
+    provider: ProviderIdSchema,
+    isFree: z.boolean().openapi({ example: true }),
   }),
 );
 
@@ -29,6 +30,7 @@ export const CreateAiModelRequestSchema = registry.register(
       .max(100)
       .openapi({ example: "gemini-2.5-flash" }),
     provider: ProviderIdSchema,
+    isFree: z.boolean().default(false),
   }),
 );
 export type CreateAiModelRequest = z.infer<typeof CreateAiModelRequestSchema>;
@@ -38,10 +40,23 @@ export const AiModelResponseSchema = registry.register(
   z.object({
     id: z.uuid(),
     name: z.string(),
-    provider: z.string(),
+    provider: ProviderIdSchema,
+    isFree: z.boolean(),
   }),
 );
 export type AiModelResponse = z.infer<typeof AiModelResponseSchema>;
+
+export const ListAiModelsQuerySchema = registry.register(
+  "ListAiModelsQuery",
+  z.object({
+    provider: ProviderIdSchema.optional(),
+    isFree: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional(),
+  }),
+);
+export type ListAiModelsQuery = z.infer<typeof ListAiModelsQuerySchema>;
 
 export const ListAiModelsResponseSchema = registry.register(
   "ListAiModelsResponse",

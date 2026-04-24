@@ -11,6 +11,7 @@ export type ModelSelection = {
   id: string;
   name: string;
   provider: ProviderId;
+  isFree: boolean;
 };
 
 export async function FindModelsByIds(
@@ -20,12 +21,13 @@ export async function FindModelsByIds(
     async () => {
       const rows = await prisma.aiModel.findMany({
         where: { id: { in: ids } },
-        select: { id: true, name: true, provider: true },
+        select: { id: true, name: true, provider: true, isFree: true },
       });
       return rows.map((r) => ({
         id: r.id,
         name: r.name,
         provider: r.provider as ProviderId,
+        isFree: r.isFree,
       }));
     },
     (cause) => {
@@ -36,14 +38,14 @@ export async function FindModelsByIds(
 }
 
 export async function CreateComparison(
-  userId: string,
+  userId: string | null,
   input: CreateComparisonRequest,
 ): Promise<Result<{ id: string; createdAt: Date }, ServiceUnavailableError>> {
   return tryCatch(
     async () => {
       const row = await prisma.comparison.create({
         data: {
-          userId,
+          userId: userId ?? undefined,
           prompt: input.prompt,
         },
         select: { id: true, createdAt: true },

@@ -30,7 +30,7 @@ type InternalEvent =
   | { kind: "pump_done"; selection: ModelSelection };
 
 export async function streamComparison(
-  userId: string,
+  userId: string | null,
   input: CreateComparisonRequest,
   signal: AbortSignal,
 ): Promise<Result<AsyncIterable<StreamEvent>, StreamSetupError>> {
@@ -40,6 +40,18 @@ export async function streamComparison(
     return err(new ValidationError("one or more model ids are unknown"));
   }
   const selections = modelsResult.value;
+  if (userId === null) {
+    const paid = selections.filter((model) => !model.isFree);
+    if (paid.length > 0) {
+      return err(
+        new ValidationError(
+          `anonymous access is limited to free models: ${paid
+            .map((model) => model.name)
+            .join(", ")} require sign-in`,
+        ),
+      );
+    }
+  }
 
   const comparisonResult = await CreateComparison(userId, input);
   if (!comparisonResult.ok) return err(comparisonResult.error);
@@ -58,6 +70,7 @@ async function* runStream(
   const adapterSelections: AdapterSelection[] = selections.map((s) => ({
     provider: s.provider,
     name: s.name,
+    isFree: s.isFree,
   }));
   const adapters = buildAdapters(adapterSelections);
   const adapterToSelection = new Map<string, ModelSelection>();
@@ -72,7 +85,7 @@ async function* runStream(
       prompt: input.prompt,
       createdAt: createdAt.toISOString(),
       selections: selections.map((s) => ({
-        aiModel: { name: s.name, provider: s.provider },
+        aiModel: { name: s.name, provider: s.provider, isFree: s.isFree },
       })),
     },
   };
@@ -104,6 +117,7 @@ async function* runStream(
     const aiModel: AiModel = {
       name: selection.name,
       provider: selection.provider,
+      isFree: selection.isFree,
     };
 
     if (chunk.type === "delta") {

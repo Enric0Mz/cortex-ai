@@ -24,7 +24,11 @@ interface GeminiStreamChunk {
   };
 }
 
-export function geminiAdapter(apiKey: string, model: string): ProviderAdapter {
+export function geminiAdapter(
+  apiKey: string,
+  model: string,
+  isFree: boolean,
+): ProviderAdapter {
   return {
     id: "gemini",
     model,
@@ -54,7 +58,7 @@ export function geminiAdapter(apiKey: string, model: string): ProviderAdapter {
           }
 
           return {
-            aiModel: { name: model, provider: "gemini" },
+            aiModel: { name: model, provider: "gemini", isFree },
             content,
             inputTokens: data.usageMetadata?.promptTokenCount ?? 0,
             outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,
@@ -71,7 +75,7 @@ export function geminiAdapter(apiKey: string, model: string): ProviderAdapter {
       );
     },
     streamGenerate(prompt, signal) {
-      return geminiStream(apiKey, model, prompt, signal);
+      return geminiStream(apiKey, model, isFree, prompt, signal);
     },
   };
 }
@@ -79,6 +83,7 @@ export function geminiAdapter(apiKey: string, model: string): ProviderAdapter {
 async function* geminiStream(
   apiKey: string,
   model: string,
+  isFree: boolean,
   prompt: string,
   signal: AbortSignal,
 ): AsyncIterable<StreamYield> {
@@ -143,7 +148,7 @@ async function* geminiStream(
   yield {
     type: "done",
     result: {
-      aiModel: { name: model, provider: "gemini" },
+      aiModel: { name: model, provider: "gemini", isFree },
       content: accumulated,
       inputTokens,
       outputTokens: outputTokens || accumulated.length,
