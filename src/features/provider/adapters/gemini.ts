@@ -1,9 +1,20 @@
 import { ProviderError } from "@/lib/errors";
 import { tryCatch } from "@/lib/result";
 import type { ProviderResult } from "@/features/comparison/schemas";
-import type { ProviderAdapter } from "../types";
+import type { ProviderAdapter, StreamYield } from "../types";
+import { parseSSELines } from "../lib/sse";
 
 interface GeminiResponse {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+  };
+}
+
+interface GeminiStreamChunk {
   candidates?: Array<{
     content?: { parts?: Array<{ text?: string }> };
   }>;
@@ -58,6 +69,87 @@ export function geminiAdapter(apiKey: string, model: string): ProviderAdapter {
             cause,
           ),
       );
+    },
+    streamGenerate(prompt, signal) {
+      return geminiStream(apiKey, model, prompt, signal);
+    },
+  };
+}
+
+async function* geminiStream(
+  apiKey: string,
+  model: string,
+  prompt: string,
+  signal: AbortSignal,
+): AsyncIterable<StreamYield> {
+  const started = Date.now();
+  let accumulated = "";
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const response = await fetch(url, {
+      method: "POST",
+      signal,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`HTTP ${response.status}: ${body.slice(0, 200)}`);
+    }
+
+    for await (const payload of parseSSELines(response.body)) {
+      if (payload === "[DONE]") break;
+      let chunk: GeminiStreamChunk;
+      try {
+        chunk = JSON.parse(payload) as GeminiStreamChunk;
+      } catch {
+        continue;
+      }
+      const parts = chunk.candidates?.[0]?.content?.parts;
+      if (parts) {
+        for (const part of parts) {
+          if (typeof part.text === "string" && part.text.length > 0) {
+            accumulated += part.text;
+            yield { type: "delta", text: part.text };
+          }
+        }
+      }
+      if (chunk.usageMetadata) {
+        inputTokens = chunk.usageMetadata.promptTokenCount ?? inputTokens;
+        outputTokens =
+          chunk.usageMetadata.candidatesTokenCount ?? outputTokens;
+      }
+    }
+  } catch (cause) {
+    yield {
+      type: "error",
+      error: new ProviderError(
+        "gemini",
+        cause instanceof Error ? cause.message : String(cause),
+        cause,
+      ),
+    };
+    return;
+  }
+
+  yield {
+    type: "done",
+    result: {
+      aiModel: { name: model, provider: "gemini" },
+      content: accumulated,
+      inputTokens,
+      outputTokens: outputTokens || accumulated.length,
+      costUsd: 0,
+      latencyMs: Date.now() - started,
     },
   };
 }
