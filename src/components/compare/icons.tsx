@@ -204,3 +204,71 @@ export function CompareMarkIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function WarningIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      strokeWidth={1.5}
+      aria-hidden="true"
+      {...baseProps}
+      {...props}
+    >
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+}
+
+export function RefreshIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      strokeWidth={2}
+      aria-hidden="true"
+      {...baseProps}
+      {...props}
+    >
+      <path d="M23 4v6h-6" />
+      <path d="M1 20v-6h6" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+  );
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 12 12"
+      width="12"
+      height="12"
+      strokeWidth={1.5}
+      aria-hidden="true"
+      {...baseProps}
+      {...props}
+    >
+      <path d="M2 4.5l4 4 4-4" />
+    </svg>
+  );
+}
+
+export function ChevronUpIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 12 12"
+      width="12"
+      height="12"
+      strokeWidth={1.5}
+      aria-hidden="true"
+      {...baseProps}
+      {...props}
+    >
+      <path d="M2 7.5l4-4 4 4" />
+    </svg>
+  );
+}

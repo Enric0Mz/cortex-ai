@@ -1,78 +1,80 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   ClockIcon,
   CopyIcon,
   DollarIcon,
   StarFilledIcon,
   StarIcon,
   TokenIcon,
+  WarningIcon,
 } from "@/components/compare/icons";
-import type { MockModel } from "@/components/compare/data";
 
-type CardPhase = "waiting" | "streaming" | "done";
+type CardPhase = "waiting" | "streaming" | "done" | "failed";
 type VoteState = "none" | "self" | "other";
 
 type ModelCardProps = {
-  model: MockModel;
-  streamSpeedMs: number;
+  name: string;
+  sub: string;
+  initial: string;
+  color: string;
+  bg: string;
+  phase: CardPhase;
+  text: string;
+  latency?: string;
+  cost?: string;
+  tokens?: string;
+  errorCode?: string;
   voteState: VoteState;
-  onStreamDone: () => void;
   onVote: () => void;
 };
 
 export function ModelCard({
-  model,
-  streamSpeedMs,
+  name,
+  sub,
+  initial,
+  color,
+  bg,
+  phase,
+  text,
+  latency,
+  cost,
+  tokens,
+  errorCode,
   voteState,
-  onStreamDone,
   onVote,
 }: ModelCardProps) {
-  const [phase, setPhase] = useState<CardPhase>("waiting");
-  const [rendered, setRendered] = useState("");
   const [copied, setCopied] = useState(false);
-  const onDoneRef = useRef(onStreamDone);
-  useEffect(() => {
-    onDoneRef.current = onStreamDone;
-  }, [onStreamDone]);
+  const [displayedText, setDisplayedText] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
 
+  // Typewriter effect: revealing characters at a controlled pace
   useEffect(() => {
-    let cancelled = false;
-    const timers: number[] = [];
-    let i = 0;
-
-    function tick() {
-      if (cancelled) return;
-      if (i >= model.text.length) {
-        setPhase("done");
-        onDoneRef.current();
-        return;
-      }
-      const ch = model.text[i];
-      let delay = streamSpeedMs + Math.random() * streamSpeedMs * 0.6;
-      if (".,!?:;".includes(ch)) delay += 80;
-      if (ch === "\n") delay += 40;
-      i += 1;
-      setRendered(model.text.slice(0, i));
-      timers.push(window.setTimeout(tick, delay));
+    if (phase === "waiting") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDisplayedText("");
+      return;
     }
 
-    const startTimer = window.setTimeout(() => {
-      if (cancelled) return;
-      setPhase("streaming");
-      tick();
-    }, model.startDelayMs);
+    if (displayedText.length >= text.length) return;
 
-    return () => {
-      cancelled = true;
-      window.clearTimeout(startTimer);
-      timers.forEach(window.clearTimeout);
-    };
-  }, [model, streamSpeedMs]);
+    const diff = text.length - displayedText.length;
+    // Adaptive logic: far behind = jump more chars, near end = 1 char per tick
+    const step = diff > 100 ? 12 : diff > 40 ? 4 : diff > 15 ? 2 : 1;
+    const delay = diff > 60 ? 10 : 25;
+
+    const timer = setTimeout(() => {
+      setDisplayedText(text.slice(0, displayedText.length + step));
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [text, displayedText, phase]);
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(model.text);
+      await navigator.clipboard.writeText(text);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -82,33 +84,37 @@ export function ModelCard({
 
   const isWinner = voteState === "self";
   const isDimmed = voteState === "other";
+  const isFailed = phase === "failed";
   const canInteract = phase === "done";
   const voteLocked = voteState !== "none";
+  const contentReady = !isFailed && phase !== "waiting";
 
   return (
     <article
-      className={`flex min-h-[320px] flex-col overflow-hidden rounded-2xl bg-white transition-[border-color,box-shadow,opacity] duration-200 ${
+      className={`flex min-h-[640px] flex-col overflow-hidden rounded-2xl bg-white transition-[border-color,box-shadow,opacity] duration-200 ${
         isWinner
           ? "border-[1.5px] border-[color:var(--purple)] shadow-[0_0_0_4px_rgba(124,58,237,0.09)]"
-          : isDimmed
-            ? "border border-[color:var(--border)] opacity-50 hover:opacity-65"
-            : "border border-[color:var(--border)] hover:border-[color:var(--purple-light)]"
+          : isFailed
+            ? "border border-[color:var(--border)] opacity-80"
+            : isDimmed
+              ? "border border-[color:var(--border)] opacity-50 hover:opacity-65"
+              : "border border-[color:var(--border)] hover:border-[color:var(--purple-light)]"
       }`}
     >
       <header className="flex items-center gap-2.5 border-b border-[color:var(--bg2)] px-3.5 pt-3.5 pb-3">
         <span
           aria-hidden="true"
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[13px] font-semibold tracking-[-0.01em]"
-          style={{ background: model.bg, color: model.color }}
+          style={{ background: bg, color }}
         >
-          {model.initial}
+          {initial}
         </span>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[13px] font-semibold leading-[1.2] tracking-[-0.01em] text-ink">
-            {model.name}
+            {name}
           </div>
           <div className="mt-px text-[11px] leading-[1.3] text-ink-3">
-            {model.sub}
+            {sub}
           </div>
         </div>
 
@@ -118,44 +124,99 @@ export function ModelCard({
             Vencedor
           </span>
         ) : (
-          <CardStatusLabel phase={phase} latency={model.latency} />
+          <CardStatusLabel phase={phase} latency={latency} />
         )}
       </header>
 
-      <div className="flex-1 whitespace-pre-wrap px-3.5 py-3.5 text-[13.5px] leading-[1.7] text-ink-2">
-        {phase === "waiting" ? (
-          <span
-            aria-hidden="true"
-            className="inline-block h-4 w-[2px] align-[-0.1em] bg-[color:var(--purple-light)] [animation:var(--animate-cursor)]"
-          />
-        ) : (
-          <>
-            {rendered}
-            {phase === "streaming" && (
+      <div className="relative flex flex-1 flex-col">
+        <div
+          className={`relative flex-1 ${
+            isExpanded ? "" : "max-h-[480px] overflow-hidden"
+          }`}
+        >
+          <div className="whitespace-pre-wrap px-3.5 py-3.5 text-[13.5px] leading-[1.7] text-ink-2">
+            {phase === "waiting" ? (
               <span
                 aria-hidden="true"
-                className="ml-[1px] inline-block h-4 w-[2px] align-[-0.1em] bg-[color:var(--purple-light)] [animation:var(--animate-cursor)]"
+                className="inline-block h-4 w-[2px] align-[-0.1em] bg-[color:var(--purple-light)] [animation:var(--animate-cursor)]"
               />
+            ) : phase === "failed" ? (
+              <div className="flex h-full flex-col items-center justify-center py-6 text-center">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#fdf5f0] text-[#d97757]">
+                  <WarningIcon />
+                </div>
+                <h3 className="mb-2 text-[15px] font-semibold text-[#2a2218]">
+                  Modelo indisponível
+                </h3>
+                <p className="max-w-[240px] text-[13px] leading-[1.5] text-ink-3">
+                  Este modelo está com instabilidade no momento. Tente novamente em alguns minutos.
+                </p>
+                {errorCode && (
+                  <span className="mt-4 inline-flex items-center rounded-md bg-[#fdf5f0] px-2 py-0.5 font-mono text-[11px] font-medium text-[#d97757]">
+                    {errorCode}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <>
+                {displayedText}
+                {(phase === "streaming" || displayedText.length < text.length) && (
+                  <span
+                    aria-hidden="true"
+                    className="ml-[1px] inline-block h-4 w-[2px] align-[-0.1em] bg-[color:var(--purple-light)] [animation:var(--animate-cursor)]"
+                  />
+                )}
+              </>
             )}
-          </>
+          </div>
+
+          {!isExpanded && contentReady && (
+            <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-24 bg-gradient-to-t from-white via-white/80 to-transparent" />
+          )}
+        </div>
+
+        {contentReady && (
+          <div className="px-3.5 pb-3 pt-2 mt-auto">
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[rgba(124,58,237,0.15)] bg-[color:var(--purple-pale)] py-2 text-[13px] font-medium text-[color:var(--purple)] transition-colors hover:bg-[#eadeff]"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUpIcon />
+                  Recolher resposta
+                </>
+              ) : (
+                <>
+                  <ChevronDownIcon />
+                  Expandir resposta
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
 
-      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--bg2)] px-3.5 py-2.5">
+      <footer
+        className={`flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--bg2)] px-3.5 py-2.5 transition-opacity ${
+          isFailed ? "invisible h-0 overflow-hidden border-none py-0" : "visible"
+        }`}
+      >
         <div className="flex flex-wrap items-center gap-1.5">
           <MetaChip
             icon={<ClockIcon />}
-            label={phase === "done" ? model.latency : "—"}
-            active={phase === "done"}
+            label={latency ?? "—"}
+            active={phase === "done" || phase === "failed"}
           />
           <MetaChip
             icon={<DollarIcon />}
-            label={phase === "done" ? model.cost : "—"}
+            label={cost ?? "—"}
             active={phase === "done"}
           />
           <MetaChip
             icon={<TokenIcon />}
-            label={phase === "done" ? `${model.tokens} tok` : "—"}
+            label={tokens ?? "—"}
             active={phase === "done"}
           />
         </div>
@@ -198,24 +259,33 @@ function CardStatusLabel({
   latency,
 }: {
   phase: CardPhase;
-  latency: string;
+  latency?: string;
 }) {
   const text =
     phase === "waiting"
       ? "Aguardando…"
       : phase === "streaming"
         ? "Digitando…"
-        : latency;
+        : phase === "failed"
+          ? "Indisponível"
+          : (latency ?? "");
+  const dotClass =
+    phase === "done"
+      ? "bg-[color:var(--success)]"
+      : phase === "failed"
+        ? "bg-[#d97757]"
+        : "bg-[color:var(--purple-light)] [animation:var(--animate-sdot-pip)]";
+  const textColorClass = phase === "failed" ? "text-[#d97757]" : "text-ink-3";
+  const badgeClass =
+    phase === "failed"
+      ? "bg-[#fdf5f0] border-[#f4e2d8] border px-2 py-0.5 rounded-full"
+      : "";
+
   return (
-    <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-medium tracking-[-0.005em] text-ink-3">
-      <span
-        aria-hidden="true"
-        className={`h-[5px] w-[5px] rounded-full ${
-          phase === "done"
-            ? "bg-[color:var(--success)]"
-            : "bg-[color:var(--purple-light)] [animation:var(--animate-sdot-pip)]"
-        }`}
-      />
+    <span
+      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-medium tracking-[-0.005em] ${textColorClass} ${badgeClass}`}
+    >
+      <span aria-hidden="true" className={`h-[5px] w-[5px] rounded-full ${dotClass}`} />
       {text}
     </span>
   );
