@@ -180,3 +180,80 @@ export function BrandMark(props: IconProps) {
     </svg>
   );
 }
+
+export function FilterIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      strokeWidth={1.5}
+      aria-hidden="true"
+      {...baseProps}
+      {...props}
+    >
+      <path d="M14 4H2" />
+      <path d="M11.5 8H4.5" />
+      <path d="M9 12H7" />
+    </svg>
+  );
+}
+
+export function CheckSquareIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="16"
+      height="16"
+      strokeWidth={1.5}
+      aria-hidden="true"
+      {...baseProps}
+      fill="var(--purple)"
+      stroke="none"
+      {...props}
+    >
+      <rect x="0" y="0" width="16" height="16" rx="4" />
+      <path
+        d="M4.5 8l2.5 2.5 4.5-4.5"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+export function SquareIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="16"
+      height="16"
+      strokeWidth={1.5}
+      aria-hidden="true"
+      {...baseProps}
+      {...props}
+    >
+      <rect x="1" y="1" width="14" height="14" rx="4" />
+    </svg>
+  );
+}
+
+export function SearchIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      strokeWidth={1.5}
+      aria-hidden="true"
+      {...baseProps}
+      {...props}
+    >
+      <circle cx="7" cy="7" r="4.5" />
+      <path d="M10.5 10.5L14 14" />
+    </svg>
+  );
+}

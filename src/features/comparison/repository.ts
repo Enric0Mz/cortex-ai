@@ -57,6 +57,35 @@ export async function CreateComparison(
   );
 }
 
+export async function CreateOneComparisonResponse(
+  comparisonId: string,
+  result: ProviderResult,
+  aiModelId: string,
+): Promise<Result<{ id: string }, ServiceUnavailableError>> {
+  return tryCatch(
+    async () => {
+      const row = await prisma.response.create({
+        data: {
+          comparisonId,
+          provider: result.aiModel.provider,
+          aiModelId,
+          content: result.content,
+          inputTokens: result.inputTokens,
+          outputTokens: result.outputTokens,
+          costUsd: result.costUsd,
+          latencyMs: result.latencyMs,
+        },
+        select: { id: true },
+      });
+      return row;
+    },
+    (cause) => {
+      console.error("[CreateOneComparisonResponse] DB error:", cause);
+      return new ServiceUnavailableError("database", cause);
+    },
+  );
+}
+
 export async function CreateComparisonResponse(
   comparisonId: string,
   results: ProviderResult[],

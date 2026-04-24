@@ -1,6 +1,7 @@
 import "@/openapi/common";
 import "./auth";
 import "./comparisons";
+import "./comparisons-stream";
 import "./health";
 import "./models";
 import "./openapi";
