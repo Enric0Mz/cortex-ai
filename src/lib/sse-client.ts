@@ -41,7 +41,8 @@ function parseFrame(frame: string): SseFrame | null {
   for (const raw of frame.split("\n")) {
     const line = raw.replace(/\r$/, "");
     if (line.startsWith("event:")) event = line.slice(6).trim();
-    else if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+    else if (line.startsWith("data:"))
+      dataLines.push(line.slice(5).trimStart());
   }
   if (dataLines.length === 0) return null;
   try {

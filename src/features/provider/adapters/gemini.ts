@@ -125,8 +125,7 @@ async function* geminiStream(
       }
       if (chunk.usageMetadata) {
         inputTokens = chunk.usageMetadata.promptTokenCount ?? inputTokens;
-        outputTokens =
-          chunk.usageMetadata.candidatesTokenCount ?? outputTokens;
+        outputTokens = chunk.usageMetadata.candidatesTokenCount ?? outputTokens;
       }
     }
   } catch (cause) {

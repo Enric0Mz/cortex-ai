@@ -52,7 +52,8 @@ registry.registerPath({
       },
     },
     400: {
-      description: "Request body failed validation (includes unknown model ids).",
+      description:
+        "Request body failed validation (includes unknown model ids).",
       content: {
         "application/json": { schema: ErrorResponseSchema },
       },

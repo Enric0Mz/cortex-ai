@@ -25,17 +25,25 @@ import {
 } from "@/lib/constants";
 import type { AiModelResponse } from "@/features/ai-models/schemas";
 
-const PRO_MODELS = ["gpt4o", "claude", "geminipro", "gemini-2.5-pro", "openai/gpt-4o"];
+const PRO_MODELS = [
+  "gpt4o",
+  "claude",
+  "geminipro",
+  "gemini-2.5-pro",
+  "openai/gpt-4o",
+];
 
 function formatModelName(rawName: string) {
   let name = rawName;
   if (name.includes("/")) name = name.split("/")[1];
-  
+
   return name
     .split("-")
     .map((word) => {
-      if (word === "gpt" || word === "oss" || word === "b") return word.toUpperCase();
-      if (word === "20b" || word === "120b" || word === "70b") return word.toUpperCase();
+      if (word === "gpt" || word === "oss" || word === "b")
+        return word.toUpperCase();
+      if (word === "20b" || word === "120b" || word === "70b")
+        return word.toUpperCase();
       return word.charAt(0).toUpperCase() + word.slice(1);
     })
     .join(" ")
@@ -68,23 +76,29 @@ export function PromptBox() {
       .then((list: AiModelResponse[]) => {
         if (cancelled) return;
         setModels(list);
-        
+
         // Find default models: Llama 3.x and Mistral small/8b
         const defaultModels = list.filter((m) => {
           const nameLower = m.name.toLowerCase();
-          return nameLower.includes("llama-3") || nameLower.includes("mistral-small");
+          return (
+            nameLower.includes("llama-3") || nameLower.includes("mistral-small")
+          );
         });
 
         // Use defaults if found, otherwise fallback to first non-pro models
         let initialActive = defaultModels;
         if (initialActive.length < MIN_MODELS_PER_COMPARISON) {
-          const freeModels = list.filter(m => !PRO_MODELS.some(p => m.name.includes(p) || m.id === p));
+          const freeModels = list.filter(
+            (m) => !PRO_MODELS.some((p) => m.name.includes(p) || m.id === p),
+          );
           initialActive = freeModels.slice(0, MIN_MODELS_PER_COMPARISON);
         }
-        
+
         // Respect MAX_MODELS_PER_COMPARISON just in case
         setActive(
-          new Set(initialActive.slice(0, MAX_MODELS_PER_COMPARISON).map((m) => m.id)),
+          new Set(
+            initialActive.slice(0, MAX_MODELS_PER_COMPARISON).map((m) => m.id),
+          ),
         );
       })
       .catch(() => {
@@ -182,7 +196,6 @@ export function PromptBox() {
   return (
     <div className="relative z-[2] mx-auto w-full max-w-[720px]">
       <div className="overflow-hidden rounded-[20px] border border-[color:var(--border)] bg-white shadow-[0_2px_8px_rgba(26,20,16,0.05),0_12px_32px_-8px_rgba(124,92,191,0.10)] transition-[border-color,box-shadow] duration-200 focus-within:border-[color:var(--purple-light)] focus-within:shadow-[0_2px_8px_rgba(26,20,16,0.05),0_16px_40px_-8px_rgba(124,92,191,0.16)]">
-        
         {/* Input Area */}
         <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 pl-5">
           <button
@@ -282,7 +295,10 @@ export function PromptBox() {
 
             <div className="max-h-[340px] overflow-y-auto">
               {groupedModels.map(([vendor, vendorModels]) => (
-                <div key={vendor} className="mb-2 border-b border-[color:var(--bg2)] last:mb-0 last:border-0">
+                <div
+                  key={vendor}
+                  className="mb-2 border-b border-[color:var(--bg2)] last:mb-0 last:border-0"
+                >
                   <div className="flex items-center gap-1.5 px-4 py-[9px]">
                     <span className="flex h-5 w-5 items-center justify-center rounded bg-[color:var(--bg2)] text-[10px] font-bold text-ink-3">
                       {vendor[0]}

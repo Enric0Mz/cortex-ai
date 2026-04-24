@@ -56,7 +56,10 @@ export function Rotator({ phrases }: RotatorProps) {
         {phrases.reduce((a, b) => (a.length >= b.length ? a : b))}
       </span>
 
-      <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center whitespace-nowrap">
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 flex items-center justify-center whitespace-nowrap"
+      >
         {displayedText}
         <span
           className={`ml-[4px] inline-block h-[0.9em] w-[3px] translate-y-[0.05em] bg-[color:var(--purple)] transition-opacity duration-100 ${

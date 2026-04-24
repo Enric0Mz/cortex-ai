@@ -4,7 +4,11 @@ import { providerChrome } from "@/components/compare/chrome";
 import { ModelCard } from "@/components/compare/ModelCard";
 import { StatusRow } from "@/components/compare/StatusRow";
 import { WinnerToast } from "@/components/compare/WinnerToast";
-import { formatCost, formatLatency, formatTokens } from "@/components/compare/format";
+import {
+  formatCost,
+  formatLatency,
+  formatTokens,
+} from "@/components/compare/format";
 import { parseSSEStream } from "@/lib/sse-client";
 import type { AiModelResponse } from "@/features/ai-models/schemas";
 
@@ -167,7 +171,10 @@ function applyEvent(
   setCards: React.Dispatch<React.SetStateAction<Record<string, CardState>>>,
 ): void {
   if (event === "provider.delta") {
-    const e = data as { aiModel: { name: string; provider: string }; text: string };
+    const e = data as {
+      aiModel: { name: string; provider: string };
+      text: string;
+    };
     const key = `${e.aiModel.provider}|${e.aiModel.name}`;
     setCards((prev) => {
       const card = prev[key];
@@ -176,7 +183,10 @@ function applyEvent(
         ...prev,
         [key]: {
           ...card,
-          phase: card.phase === "done" || card.phase === "failed" ? card.phase : "streaming",
+          phase:
+            card.phase === "done" || card.phase === "failed"
+              ? card.phase
+              : "streaming",
           text: card.text + e.text,
         },
       };
@@ -197,7 +207,12 @@ function applyEvent(
             costUsd: number;
             latencyMs: number;
           }
-        | { status: "failed"; error: string; latencyMs: number; errorCode?: string };
+        | {
+            status: "failed";
+            error: string;
+            latencyMs: number;
+            errorCode?: string;
+          };
     };
     const key = `${e.aiModel.provider}|${e.aiModel.name}`;
     setCards((prev) => {

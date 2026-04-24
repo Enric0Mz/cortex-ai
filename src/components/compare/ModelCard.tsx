@@ -149,7 +149,8 @@ export function ModelCard({
                   Modelo indisponível
                 </h3>
                 <p className="max-w-[240px] text-[13px] leading-[1.5] text-ink-3">
-                  Este modelo está com instabilidade no momento. Tente novamente em alguns minutos.
+                  Este modelo está com instabilidade no momento. Tente novamente
+                  em alguns minutos.
                 </p>
                 {errorCode && (
                   <span className="mt-4 inline-flex items-center rounded-md bg-[#fdf5f0] px-2 py-0.5 font-mono text-[11px] font-medium text-[#d97757]">
@@ -160,7 +161,8 @@ export function ModelCard({
             ) : (
               <>
                 {displayedText}
-                {(phase === "streaming" || displayedText.length < text.length) && (
+                {(phase === "streaming" ||
+                  displayedText.length < text.length) && (
                   <span
                     aria-hidden="true"
                     className="ml-[1px] inline-block h-4 w-[2px] align-[-0.1em] bg-[color:var(--purple-light)] [animation:var(--animate-cursor)]"
@@ -200,7 +202,9 @@ export function ModelCard({
 
       <footer
         className={`flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--bg2)] px-3.5 py-2.5 transition-opacity ${
-          isFailed ? "invisible h-0 overflow-hidden border-none py-0" : "visible"
+          isFailed
+            ? "invisible h-0 overflow-hidden border-none py-0"
+            : "visible"
         }`}
       >
         <div className="flex flex-wrap items-center gap-1.5">
@@ -285,7 +289,10 @@ function CardStatusLabel({
     <span
       className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-medium tracking-[-0.005em] ${textColorClass} ${badgeClass}`}
     >
-      <span aria-hidden="true" className={`h-[5px] w-[5px] rounded-full ${dotClass}`} />
+      <span
+        aria-hidden="true"
+        className={`h-[5px] w-[5px] rounded-full ${dotClass}`}
+      />
       {text}
     </span>
   );

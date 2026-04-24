@@ -21,10 +21,7 @@ export type ProviderChrome = {
   sub: string;
 };
 
-export function providerChrome(
-  provider: string,
-  name: string,
-): ProviderChrome {
+export function providerChrome(provider: string, name: string): ProviderChrome {
   const id = provider as ProviderId;
   const color = PROVIDER_COLORS[id] ?? "#7c5cbf";
   const sub = PROVIDER_LABELS[id] ?? provider;

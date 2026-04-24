@@ -71,10 +71,7 @@ async function* fakeStream(
     return;
   }
 
-  if (
-    prompt.includes(`__timeout:${id}`) ||
-    prompt.includes("__timeout:all")
-  ) {
+  if (prompt.includes(`__timeout:${id}`) || prompt.includes("__timeout:all")) {
     try {
       await waitForAbort(signal);
     } catch (cause) {

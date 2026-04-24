@@ -60,10 +60,7 @@ async function* runStream(
     name: s.name,
   }));
   const adapters = buildAdapters(adapterSelections);
-  const adapterToSelection = new Map<
-    string,
-    ModelSelection
-  >();
+  const adapterToSelection = new Map<string, ModelSelection>();
   for (const s of selections) {
     adapterToSelection.set(keyOf(s.provider, s.name), s);
   }
@@ -104,7 +101,10 @@ async function* runStream(
     }
 
     const { selection, chunk } = evt;
-    const aiModel: AiModel = { name: selection.name, provider: selection.provider };
+    const aiModel: AiModel = {
+      name: selection.name,
+      provider: selection.provider,
+    };
 
     if (chunk.type === "delta") {
       yield {
@@ -114,7 +114,11 @@ async function* runStream(
     } else if (chunk.type === "done") {
       const persisted = signal.aborted
         ? null
-        : await CreateOneComparisonResponse(comparisonId, chunk.result, selection.id);
+        : await CreateOneComparisonResponse(
+            comparisonId,
+            chunk.result,
+            selection.id,
+          );
       const response = toOkResponse(
         persisted && persisted.ok ? persisted.value.id : null,
         chunk.result,
