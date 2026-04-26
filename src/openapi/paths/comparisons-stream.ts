@@ -16,11 +16,11 @@ registry.registerPath({
   summary: "Stream a comparison response as tokens arrive",
   description:
     "Returns a `text/event-stream` of named SSE events. Validation failures " +
-    "(auth, schema, unknown model ids) produce ordinary JSON error responses " +
+    "(schema, unknown model ids, anonymous paid-model picks) produce ordinary JSON error responses " +
     "before the stream opens. Event payload schemas: ComparisonCreatedEvent, " +
     "ProviderDeltaEvent, ProviderCompletedEvent, ProviderFailedEvent, DoneEvent.",
   tags: ["Comparisons"],
-  security: [{ cookieAuth: [] }],
+  security: [{}, { cookieAuth: [] }],
   request: {
     body: {
       required: true,
@@ -53,13 +53,7 @@ registry.registerPath({
     },
     400: {
       description:
-        "Request body failed validation (includes unknown model ids).",
-      content: {
-        "application/json": { schema: ErrorResponseSchema },
-      },
-    },
-    401: {
-      description: "Not authenticated.",
+        "Request body failed validation (includes unknown model ids or paid models picked anonymously).",
       content: {
         "application/json": { schema: ErrorResponseSchema },
       },

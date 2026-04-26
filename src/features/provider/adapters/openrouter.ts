@@ -4,6 +4,7 @@ import { openAIChatAdapter } from "./openai-compat";
 export function openrouterAdapter(
   apiKey: string,
   model: string,
+  isFree: boolean,
 ): ProviderAdapter {
   return openAIChatAdapter({
     id: "openrouter",
@@ -11,6 +12,7 @@ export function openrouterAdapter(
     apiKey,
     model,
     modelProvider: "openrouter",
+    isFree,
     extraHeaders: {
       "HTTP-Referer": "https://cortex-ai.local",
       "X-Title": "Cortex AI",

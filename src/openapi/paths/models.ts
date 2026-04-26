@@ -3,6 +3,7 @@ import { ErrorResponseSchema } from "@/openapi/common";
 import {
   CreateAiModelsBulkRequestSchema,
   CreateAiModelsBulkResponseSchema,
+  ListAiModelsQuerySchema,
   ListAiModelsResponseSchema,
 } from "@/features/ai-models/schemas";
 
@@ -12,6 +13,9 @@ registry.registerPath({
   summary: "List registered AI models",
   description: "Returns all AI models registered by admins.",
   tags: ["Models"],
+  request: {
+    query: ListAiModelsQuerySchema,
+  },
   responses: {
     200: {
       description: "Registered models sorted by provider and name.",

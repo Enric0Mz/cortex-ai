@@ -8,7 +8,7 @@ import type { ErrorResponse } from "@/openapi/common";
 import { runComparison } from "@/features/comparison/domain";
 import parseBody from "@/lib/parse";
 import { toErrorResponse } from "@/lib/http";
-import { requireUser } from "@/lib/auth";
+import { getOptionalUser } from "@/lib/auth";
 
 type ResponseBody = ComparisonResult | ErrorResponse;
 
@@ -23,7 +23,7 @@ export default async function handler(
     return;
   }
 
-  const user = await requireUser(req, res);
+  const user = await getOptionalUser(req, res);
   if (!user.ok) {
     res.status(user.error.statusCode).json(toErrorResponse(user.error));
     return;
@@ -35,7 +35,7 @@ export default async function handler(
     return;
   }
 
-  const result = await runComparison(user.value.id, parsed.value);
+  const result = await runComparison(user.value?.id ?? null, parsed.value);
   if (!result.ok) {
     res.status(result.error.statusCode).json(toErrorResponse(result.error));
     return;

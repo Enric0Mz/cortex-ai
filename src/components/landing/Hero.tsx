@@ -8,6 +8,7 @@ const ROTATING_PHRASES = [
   "brainstorm de idéias",
   "escrever emails",
   "código back-end",
+  "pesquisa científica",
 ] as const;
 
 export function Hero() {
@@ -26,12 +27,11 @@ export function Hero() {
       <p className="max-w-[42rem] text-[19px] leading-[1.6] text-ink-2 md:text-[17px]">
         Pare de adivinhar qual modelo usar. Envie um prompt uma vez e veja lado
         a lado como{" "}
-        <strong className="font-semibold text-ink">
-          Gemini, Llama, Mistral e GPT-OSS
-        </strong>{" "}
-        respondem — com custo, latência e votos da comunidade para cada
-        resposta. Descubra em segundos qual IA funciona melhor para o seu caso,
-        sem precisar assinar quatro ferramentas diferentes.
+        <strong className="font-semibold text-ink">Claude, Gemini, GPT</strong>{" "}
+        e diversos outros modelos respondem — com custo, latência e votos da
+        comunidade para cada resposta. Descubra em segundos qual IA funciona
+        melhor para o seu caso, sem precisar assinar quatro ferramentas
+        diferentes.
       </p>
 
       <div className="flex flex-col items-center gap-3 sm:flex-row">

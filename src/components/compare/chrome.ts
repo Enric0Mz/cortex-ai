@@ -1,17 +1,11 @@
 import type { ProviderId } from "@/features/ai-models/schemas";
+import { PROVIDER_LABELS } from "@/lib/providers";
 
 export const PROVIDER_COLORS: Record<ProviderId, string> = {
   gemini: "#3b82f6",
   groq: "#e87d2e",
   mistral: "#b8623c",
   openrouter: "#0e8f6e",
-};
-
-const PROVIDER_LABELS: Record<ProviderId, string> = {
-  gemini: "Google",
-  groq: "Groq",
-  mistral: "Mistral AI",
-  openrouter: "OpenRouter",
 };
 
 export type ProviderChrome = {

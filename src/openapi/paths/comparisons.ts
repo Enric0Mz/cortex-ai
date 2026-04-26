@@ -11,7 +11,7 @@ registry.registerPath({
   summary: "Run a prompt across all configured AI providers in parallel",
   description: "",
   tags: ["Comparisons"],
-  security: [{ cookieAuth: [] }],
+  security: [{}, { cookieAuth: [] }],
   request: {
     body: {
       required: true,
@@ -29,13 +29,8 @@ registry.registerPath({
       },
     },
     400: {
-      description: "Request body failed validation.",
-      content: {
-        "application/json": { schema: ErrorResponseSchema },
-      },
-    },
-    401: {
-      description: "Not authenticated.",
+      description:
+        "Request body failed validation, including unknown model ids or paid models picked anonymously.",
       content: {
         "application/json": { schema: ErrorResponseSchema },
       },

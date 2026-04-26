@@ -26,8 +26,8 @@ test.describe("AI models routes", () => {
       headers: { "x-admin-token": ADMIN_TOKEN },
       data: {
         models: [
-          { name: `bulk-a-${suffix}`, provider: `openrouter` },
-          { name: `bulk-b-${suffix}`, provider: `openrouter` },
+          { name: `bulk-a-${suffix}`, provider: `openrouter`, isFree: true },
+          { name: `bulk-b-${suffix}`, provider: `openrouter`, isFree: false },
         ],
       },
     });
@@ -36,6 +36,12 @@ test.describe("AI models routes", () => {
 
     expect(Array.isArray(result)).toBe(true);
     expect(result).toHaveLength(2);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ isFree: true }),
+        expect.objectContaining({ isFree: false }),
+      ]),
+    );
   });
 
   test("POST /api/v1/models bulk create without token returns 401", async ({
@@ -69,13 +75,13 @@ test.describe("AI models routes", () => {
 
     const first = await request.post("/api/v1/models", {
       headers: { "x-admin-token": ADMIN_TOKEN },
-      data: { models: [{ name, provider }] },
+      data: { models: [{ name, provider, isFree: false }] },
     });
     expect(first.status()).toBe(201);
 
     const second = await request.post("/api/v1/models", {
       headers: { "x-admin-token": ADMIN_TOKEN },
-      data: { models: [{ name, provider }] },
+      data: { models: [{ name, provider, isFree: false }] },
     });
     expect(second.status()).toBe(409);
   });
@@ -85,8 +91,9 @@ test.describe("AI models routes", () => {
   }) => {
     const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     const models = [
-      { name: `zeta-${suffix}`, provider: `openrouter` },
-      { name: `alpha-${suffix}`, provider: `openrouter` },
+      { name: `zeta-${suffix}`, provider: `openrouter`, isFree: false },
+      { name: `alpha-${suffix}`, provider: `openrouter`, isFree: true },
+      { name: `mid-${suffix}`, provider: `gemini`, isFree: true },
     ] as const;
 
     const createReq = await request.post("/api/v1/models", {
@@ -99,20 +106,86 @@ test.describe("AI models routes", () => {
     expect(listReq.status()).toBe(200);
     const listBody: ListAiModelsResponse = await listReq.json();
 
-    const created = listBody.filter(
-      (m) =>
-        (m.name === models[0].name && m.provider === models[0].provider) ||
-        (m.name === models[1].name && m.provider === models[1].provider),
+    const created = listBody.filter((m) =>
+      models.some(
+        (model) => model.name === m.name && model.provider === m.provider,
+      ),
     );
-    expect(created).toHaveLength(2);
+    expect(created).toHaveLength(3);
     expect(created[0]).toMatchObject({
-      name: models[1].name,
-      provider: models[1].provider,
+      name: models[2].name,
+      provider: models[2].provider,
+      isFree: models[2].isFree,
     });
     expect(created[1]).toMatchObject({
+      name: models[1].name,
+      provider: models[1].provider,
+      isFree: models[1].isFree,
+    });
+    expect(created[2]).toMatchObject({
       name: models[0].name,
       provider: models[0].provider,
+      isFree: models[0].isFree,
     });
+  });
+
+  test("POST and GET round-trip isFree", async ({ request }) => {
+    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+    const name = `is-free-${suffix}`;
+    const createReq = await request.post("/api/v1/models", {
+      headers: { "x-admin-token": ADMIN_TOKEN },
+      data: {
+        models: [{ name, provider: "groq", isFree: true }],
+      },
+    });
+    expect(createReq.status()).toBe(201);
+
+    const listReq = await request.get("/api/v1/models");
+    expect(listReq.status()).toBe(200);
+    const listBody: ListAiModelsResponse = await listReq.json();
+    expect(listBody).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name, provider: "groq", isFree: true }),
+      ]),
+    );
+  });
+
+  test("GET /api/v1/models filters by provider", async ({ request }) => {
+    const req = await request.get("/api/v1/models?provider=groq");
+    expect(req.status()).toBe(200);
+    const body: ListAiModelsResponse = await req.json();
+    expect(body.every((model) => model.provider === "groq")).toBe(true);
+  });
+
+  test("GET /api/v1/models filters by isFree", async ({ request }) => {
+    const req = await request.get("/api/v1/models?isFree=true");
+    expect(req.status()).toBe(200);
+    const body: ListAiModelsResponse = await req.json();
+    expect(body.length).toBeGreaterThan(0);
+    expect(body.every((model) => model.isFree)).toBe(true);
+  });
+
+  test("GET /api/v1/models parses isFree=false as false", async ({
+    request,
+  }) => {
+    const req = await request.get("/api/v1/models?isFree=false");
+    expect(req.status()).toBe(200);
+    const body: ListAiModelsResponse = await req.json();
+    expect(body.length).toBeGreaterThan(0);
+    expect(body.every((model) => !model.isFree)).toBe(true);
+  });
+
+  test("GET /api/v1/models composes provider and isFree filters", async ({
+    request,
+  }) => {
+    const req = await request.get(
+      "/api/v1/models?provider=openrouter&isFree=true",
+    );
+    expect(req.status()).toBe(200);
+    const body: ListAiModelsResponse = await req.json();
+    expect(
+      body.every((model) => model.provider === "openrouter" && model.isFree),
+    ).toBe(true);
   });
 
   test("POST /api/v1/models bulk create invalid body returns 400", async ({

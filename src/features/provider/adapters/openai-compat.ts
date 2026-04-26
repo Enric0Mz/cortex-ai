@@ -10,7 +10,8 @@ interface OpenAICompatConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
-  modelProvider: string;
+  modelProvider: ProviderId;
+  isFree: boolean;
   extraHeaders?: Record<string, string>;
 }
 
@@ -68,7 +69,11 @@ export function openAIChatAdapter(config: OpenAICompatConfig): ProviderAdapter {
           }
 
           return {
-            aiModel: { name: config.model, provider: config.modelProvider },
+            aiModel: {
+              name: config.model,
+              provider: config.modelProvider,
+              isFree: config.isFree,
+            },
             content,
             inputTokens: data.usage?.prompt_tokens ?? 0,
             outputTokens: data.usage?.completion_tokens ?? 0,
@@ -156,7 +161,11 @@ async function* openAIChatStream(
   yield {
     type: "done",
     result: {
-      aiModel: { name: config.model, provider: config.modelProvider },
+      aiModel: {
+        name: config.model,
+        provider: config.modelProvider,
+        isFree: config.isFree,
+      },
       content: accumulated,
       inputTokens,
       outputTokens: outputTokens || accumulated.length,

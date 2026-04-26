@@ -2,10 +2,18 @@ import { expect, type APIRequestContext } from "@playwright/test";
 import type { AiModelResponse } from "@/features/ai-models/schemas";
 
 export const SEED_MODELS = [
-  { name: "gemini-2.5-flash", provider: "gemini" as const },
-  { name: "llama-3.3-70b-versatile", provider: "groq" as const },
-  { name: "mistral-small-latest", provider: "mistral" as const },
-  { name: "openai/gpt-oss-120b:free", provider: "openrouter" as const },
+  { name: "gemini-2.5-flash", provider: "gemini" as const, isFree: true },
+  {
+    name: "llama-3.3-70b-versatile",
+    provider: "groq" as const,
+    isFree: true,
+  },
+  { name: "mistral-small-latest", provider: "mistral" as const, isFree: true },
+  {
+    name: "openai/gpt-oss-120b:free",
+    provider: "openrouter" as const,
+    isFree: true,
+  },
 ];
 
 export async function registerFakeModels(

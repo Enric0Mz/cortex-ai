@@ -26,11 +26,28 @@ function aiModel(evt: SseEvent): { name: string; provider: string } {
 test.describe("POST /api/v1/comparisons/stream", () => {
   let modelIds: string[] = [];
   let seeded: Array<{ id: string; name: string; provider: string }> = [];
+  let paidModelId: string;
 
   test.beforeAll(async ({ request }) => {
     seeded = await registerFakeModels(request);
     modelIds = seeded.map((m) => m.id);
     expect(modelIds.length).toBe(4);
+
+    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+    const paidReq = await request.post("/api/v1/models", {
+      headers: { "x-admin-token": process.env.ADMIN_API_TOKEN ?? "" },
+      data: {
+        models: [
+          {
+            name: `openai/gpt-4o-${suffix}`,
+            provider: "openrouter",
+            isFree: false,
+          },
+        ],
+      },
+    });
+    expect(paidReq.status()).toBe(201);
+    paidModelId = ((await paidReq.json()) as Array<{ id: string }>)[0].id;
   });
 
   test("streams one completed event per picked model and ends with done", async ({
@@ -88,11 +105,33 @@ test.describe("POST /api/v1/comparisons/stream", () => {
     expect(res.status()).toBe(400);
   });
 
-  test("requires authentication", async ({ anon }) => {
+  test("allows anonymous requests for free models", async ({ anon }) => {
     const res = await anon.post("/api/v1/comparisons/stream", {
       data: { prompt: "hi", models: modelIds },
     });
-    expect(res.status()).toBe(401);
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("text/event-stream");
+    const events = parseSseBody(await res.text());
+    expect(events[events.length - 1].event).toBe("done");
+  });
+
+  test("rejects anonymous paid models with JSON 400", async ({ anon }) => {
+    const res = await anon.post("/api/v1/comparisons/stream", {
+      data: { prompt: "hi", models: [modelIds[0], paidModelId] },
+    });
+    expect(res.status()).toBe(400);
+    expect(res.headers()["content-type"]).toContain("application/json");
+    await expect(res.json()).resolves.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
+  });
+
+  test("allows authenticated paid models", async ({ ctx }) => {
+    const res = await ctx.post("/api/v1/comparisons/stream", {
+      data: { prompt: "hi", models: [modelIds[0], paidModelId] },
+    });
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("text/event-stream");
   });
 
   test("rejects non-POST methods", async ({ ctx }) => {

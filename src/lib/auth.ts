@@ -22,3 +22,17 @@ export async function requireUser(
 ): Promise<Result<CurrentUser, UnauthorizedError | ServiceUnavailableError>> {
   return getCurrentUser(req, res);
 }
+
+export async function getOptionalUser(
+  req: NextApiRequest,
+  res: NextApiResponse,
+): Promise<Result<CurrentUser | null, ServiceUnavailableError>> {
+  const user = await getCurrentUser(req, res);
+  if (user.ok) {
+    return ok(user.value);
+  }
+  if (user.error instanceof UnauthorizedError) {
+    return ok(null);
+  }
+  return err(user.error);
+}

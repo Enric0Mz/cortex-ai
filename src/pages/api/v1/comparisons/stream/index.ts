@@ -5,7 +5,7 @@ import { streamComparison } from "@/features/comparison/stream-domain";
 import type { StreamEvent } from "@/features/comparison/stream-schemas";
 import parseBody from "@/lib/parse";
 import { toErrorResponse } from "@/lib/http";
-import { requireUser } from "@/lib/auth";
+import { getOptionalUser } from "@/lib/auth";
 
 export default async function handler(
   req: NextApiRequest,
@@ -18,7 +18,7 @@ export default async function handler(
     return;
   }
 
-  const user = await requireUser(req, res);
+  const user = await getOptionalUser(req, res);
   if (!user.ok) {
     res.status(user.error.statusCode).json(toErrorResponse(user.error));
     return;
@@ -36,7 +36,7 @@ export default async function handler(
   res.on("close", abort);
 
   const setup = await streamComparison(
-    user.value.id,
+    user.value?.id ?? null,
     parsed.value,
     controller.signal,
   );
