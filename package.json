@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev",
     "test:integration": "npm run test:db:reset && playwright test tests/integration",
     "test:integration:watch": "PWTEST_WATCH=1 npx playwright test",
-    "build": "next build",
+    "build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0",
     "format": "prettier --write .",
