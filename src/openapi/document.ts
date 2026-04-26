@@ -9,10 +9,13 @@ function buildServers() {
     return [{ url: explicit, description: "Current environment" }];
   }
 
-  const vercelUrl = process.env.VERCEL_URL;
-  if (vercelUrl) {
+  const vercelHost =
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+    process.env.VERCEL_BRANCH_URL ??
+    process.env.VERCEL_URL;
+  if (vercelHost) {
     const env = process.env.VERCEL_ENV ?? "preview";
-    return [{ url: `https://${vercelUrl}`, description: env }];
+    return [{ url: `https://${vercelHost}`, description: env }];
   }
 
   return [{ url: "http://localhost:3000", description: "Local" }];
