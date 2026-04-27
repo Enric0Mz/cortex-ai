@@ -79,6 +79,7 @@ export async function runComparison(
             ? {
                 name: selection.name,
                 provider: selection.provider,
+                company: selection.company,
                 isFree: selection.isFree,
               }
             : value.aiModel,
@@ -95,6 +96,7 @@ export async function runComparison(
           ? {
               name: selection.name,
               provider: selection.provider,
+              company: selection.company,
               isFree: selection.isFree,
             }
           : value.aiModel,
@@ -107,6 +109,7 @@ export async function runComparison(
       aiModel: {
         name: entry.adapter.model,
         provider: entry.adapter.id,
+        company: selection?.company ?? "openai",
         isFree: selection?.isFree ?? false,
       },
       status: "failed" as const,

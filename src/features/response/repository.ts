@@ -1,13 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { ServiceUnavailableError } from "@/lib/errors";
 import { tryCatch, type Result } from "@/lib/result";
-import type { ProviderId } from "@/features/ai-models/schemas";
+import type { CompanyId, ProviderId } from "@/features/ai-models/schemas";
 
 type ResponseRow = {
   id: string;
   comparisonId: string;
   provider: string;
-  aiModel: { name: string; provider: ProviderId; isFree: boolean };
+  aiModel: {
+    name: string;
+    provider: ProviderId;
+    company: CompanyId;
+    isFree: boolean;
+  };
   content: string;
   inputTokens: number;
   outputTokens: number;
@@ -31,6 +36,7 @@ export async function findResponseById(
             select: {
               name: true,
               provider: true,
+              company: true,
               isFree: true,
             },
           },
@@ -48,6 +54,7 @@ export async function findResponseById(
             aiModel: {
               ...row.aiModel,
               provider: row.aiModel.provider as ProviderId,
+              company: row.aiModel.company as CompanyId,
             },
           }
         : null;

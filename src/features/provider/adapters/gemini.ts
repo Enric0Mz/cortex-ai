@@ -1,6 +1,7 @@
 import { ProviderError } from "@/lib/errors";
 import { tryCatch } from "@/lib/result";
 import type { ProviderResult } from "@/features/comparison/schemas";
+import type { CompanyId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter, StreamYield } from "../types";
 import { parseSSELines } from "../lib/sse";
 
@@ -27,6 +28,7 @@ interface GeminiStreamChunk {
 export function geminiAdapter(
   apiKey: string,
   model: string,
+  company: CompanyId,
   isFree: boolean,
 ): ProviderAdapter {
   return {
@@ -58,7 +60,7 @@ export function geminiAdapter(
           }
 
           return {
-            aiModel: { name: model, provider: "gemini", isFree },
+            aiModel: { name: model, provider: "gemini", company, isFree },
             content,
             inputTokens: data.usageMetadata?.promptTokenCount ?? 0,
             outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,
@@ -75,7 +77,7 @@ export function geminiAdapter(
       );
     },
     streamGenerate(prompt, signal) {
-      return geminiStream(apiKey, model, isFree, prompt, signal);
+      return geminiStream(apiKey, model, company, isFree, prompt, signal);
     },
   };
 }
@@ -83,6 +85,7 @@ export function geminiAdapter(
 async function* geminiStream(
   apiKey: string,
   model: string,
+  company: CompanyId,
   isFree: boolean,
   prompt: string,
   signal: AbortSignal,
@@ -148,7 +151,7 @@ async function* geminiStream(
   yield {
     type: "done",
     result: {
-      aiModel: { name: model, provider: "gemini", isFree },
+      aiModel: { name: model, provider: "gemini", company, isFree },
       content: accumulated,
       inputTokens,
       outputTokens: outputTokens || accumulated.length,

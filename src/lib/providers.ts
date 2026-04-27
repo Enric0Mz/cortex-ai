@@ -5,6 +5,13 @@ export const PROVIDER_LABELS: Record<ProviderId, string> = {
   groq: "Groq",
   mistral: "Mistral AI",
   openrouter: "OpenRouter",
+  anthropic: "Anthropic",
+  openai: "OpenAI",
+  google: "Google",
+  meta: "Meta",
+  deepseek: "DeepSeek",
+  xai: "xAI",
+  qwen: "Qwen",
 };
 
 export const COMPANY_LABELS: Record<CompanyId, string> = {
