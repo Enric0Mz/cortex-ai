@@ -124,7 +124,11 @@ export function Compare({ prompt, selections }: CompareProps) {
             {selections.map((selection) => {
               const key = keyOf(selection);
               const card = cards[key] ?? { phase: "waiting", text: "" };
-              const chrome = providerChrome(selection.provider, selection.name);
+              const chrome = providerChrome(
+                selection.provider,
+                selection.name,
+                selection.company,
+              );
               return (
                 <ModelCard
                   key={key}

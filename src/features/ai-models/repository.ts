@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { ConflictError, ServiceUnavailableError } from "@/lib/errors";
 import { tryCatch, type Result } from "@/lib/result";
 import type {
+  CompanyId,
   CreateAiModelsBulkRequest,
   CreateAiModelsBulkResponse,
   AiModelResponse,
@@ -26,14 +27,22 @@ export async function listAiModels(
       const rows = await prisma.aiModel.findMany({
         where: {
           provider: filter?.provider,
+          company: filter?.company,
           isFree: filter?.isFree,
         },
-        orderBy: [{ provider: "asc" }, { name: "asc" }],
-        select: { id: true, name: true, provider: true, isFree: true },
+        orderBy: [{ company: "asc" }, { name: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          provider: true,
+          company: true,
+          isFree: true,
+        },
       });
       return rows.map((row) => ({
         ...row,
         provider: row.provider as ProviderId,
+        company: row.company as CompanyId,
       }));
     },
     (cause) => {
@@ -51,12 +60,19 @@ export async function findAiModelByNameProvider(
     async () => {
       const row = await prisma.aiModel.findUnique({
         where: { name_provider: { name, provider } },
-        select: { id: true, name: true, provider: true, isFree: true },
+        select: {
+          id: true,
+          name: true,
+          provider: true,
+          company: true,
+          isFree: true,
+        },
       });
       return row
         ? {
             ...row,
             provider: row.provider as ProviderId,
+            company: row.company as CompanyId,
           }
         : null;
     },
@@ -81,13 +97,21 @@ export async function createAiModelsBulk(
         data: input.models.map((model) => ({
           name: model.name,
           provider: model.provider,
+          company: model.company,
           isFree: model.isFree,
         })),
-        select: { id: true, name: true, provider: true, isFree: true },
+        select: {
+          id: true,
+          name: true,
+          provider: true,
+          company: true,
+          isFree: true,
+        },
       });
       return rows.map((row) => ({
         ...row,
         provider: row.provider as ProviderId,
+        company: row.company as CompanyId,
       }));
     },
     (cause) => {
