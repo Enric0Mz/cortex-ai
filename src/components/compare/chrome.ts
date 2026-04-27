@@ -26,8 +26,7 @@ export function providerChrome(
 ): ProviderChrome {
   const companyId = company as CompanyId | undefined;
   const providerId = provider as ProviderId;
-  const color =
-    (companyId && COMPANY_COLORS[companyId]) ?? "#7c5cbf";
+  const color = (companyId && COMPANY_COLORS[companyId]) ?? "#7c5cbf";
   const sub = PROVIDER_LABELS[providerId] ?? provider;
   const companyLabel = (companyId && COMPANY_LABELS[companyId]) ?? company;
   const initial = firstLetter(companyLabel ?? name);

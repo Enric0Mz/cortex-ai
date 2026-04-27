@@ -23,7 +23,7 @@ import {
   MAX_MODELS_PER_COMPARISON,
   MIN_MODELS_PER_COMPARISON,
 } from "@/lib/constants";
-import { COMPANY_LABELS, PROVIDER_LABELS } from "@/lib/providers";
+import { COMPANY_LABELS } from "@/lib/providers";
 import type { AiModelResponse } from "@/features/ai-models/schemas";
 
 function formatModelName(rawName: string) {

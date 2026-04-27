@@ -176,9 +176,7 @@ test.describe("AI models routes", () => {
     const createReq = await request.post("/api/v1/models", {
       headers: { "x-admin-token": ADMIN_TOKEN },
       data: {
-        models: [
-          { name, provider: "groq", company: "meta", isFree: true },
-        ],
+        models: [{ name, provider: "groq", company: "meta", isFree: true }],
       },
     });
     expect(createReq.status()).toBe(201);
@@ -351,9 +349,7 @@ test.describe("AI models routes", () => {
       },
     });
 
-    const req = await request.get(
-      "/api/v1/models?provider=groq&company=meta",
-    );
+    const req = await request.get("/api/v1/models?provider=groq&company=meta");
     expect(req.status()).toBe(200);
     const body: ListAiModelsResponse = await req.json();
     expect(body.length).toBeGreaterThan(0);
