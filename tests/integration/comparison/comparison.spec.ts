@@ -23,6 +23,7 @@ test.describe("Comparison route tests", () => {
           {
             name: `openai/gpt-4o-${suffix}`,
             provider: "openrouter",
+            company: "openai",
             isFree: false,
           },
         ],

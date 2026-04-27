@@ -1,6 +1,6 @@
 import { ProviderError } from "@/lib/errors";
 import { ok, err } from "@/lib/result";
-import type { ProviderId } from "@/features/ai-models/schemas";
+import type { CompanyId, ProviderId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter, StreamYield } from "../types";
 
 // Deterministic in-process adapter used when USE_FAKE_PROVIDERS=true.
@@ -18,6 +18,7 @@ import type { ProviderAdapter, StreamYield } from "../types";
 export function fakeAdapter(
   id: ProviderId,
   model: string,
+  company: CompanyId,
   isFree: boolean,
 ): ProviderAdapter {
   return {
@@ -48,7 +49,7 @@ export function fakeAdapter(
       }
 
       return ok({
-        aiModel: { name: model, provider: id, isFree },
+        aiModel: { name: model, provider: id, company, isFree },
         content: `[fake:${id}] ${prompt}`,
         inputTokens: prompt.length,
         outputTokens: prompt.length + id.length,
@@ -57,7 +58,7 @@ export function fakeAdapter(
       });
     },
     streamGenerate(prompt, signal) {
-      return fakeStream(id, model, isFree, prompt, signal);
+      return fakeStream(id, model, company, isFree, prompt, signal);
     },
   };
 }
@@ -65,6 +66,7 @@ export function fakeAdapter(
 async function* fakeStream(
   id: ProviderId,
   model: string,
+  company: CompanyId,
   isFree: boolean,
   prompt: string,
   signal: AbortSignal,
@@ -120,7 +122,7 @@ async function* fakeStream(
   yield {
     type: "done",
     result: {
-      aiModel: { name: model, provider: id, isFree },
+      aiModel: { name: model, provider: id, company, isFree },
       content: emitted,
       inputTokens: prompt.length,
       outputTokens: emitted.length,

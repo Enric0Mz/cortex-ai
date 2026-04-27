@@ -23,7 +23,7 @@ import {
   MAX_MODELS_PER_COMPARISON,
   MIN_MODELS_PER_COMPARISON,
 } from "@/lib/constants";
-import { PROVIDER_LABELS } from "@/lib/providers";
+import { COMPANY_LABELS } from "@/lib/providers";
 import type { AiModelResponse } from "@/features/ai-models/schemas";
 
 function formatModelName(rawName: string) {
@@ -51,7 +51,7 @@ function isDefaultModel(model: AiModelResponse) {
 }
 
 function getVendor(model: AiModelResponse) {
-  return PROVIDER_LABELS[model.provider].toUpperCase();
+  return (COMPANY_LABELS[model.company] ?? model.company).toUpperCase();
 }
 
 export function PromptBox() {
@@ -231,7 +231,11 @@ export function PromptBox() {
             <div className="flex items-center gap-2.5">
               <div className="flex -space-x-[5px]">
                 {activeSelections.map((model) => {
-                  const chrome = providerChrome(model.provider, model.name);
+                  const chrome = providerChrome(
+                    model.provider,
+                    model.name,
+                    model.company,
+                  );
                   return (
                     <span
                       key={model.id}
@@ -295,7 +299,11 @@ export function PromptBox() {
                     {vendorModels.map((model) => {
                       const isActive = active.has(model.id);
                       const isLocked = !model.isFree;
-                      const chrome = providerChrome(model.provider, model.name);
+                      const chrome = providerChrome(
+                        model.provider,
+                        model.name,
+                        model.company,
+                      );
 
                       return (
                         <li key={model.id}>
@@ -341,6 +349,9 @@ export function PromptBox() {
                               </span>
                               <span className="text-[11px] font-mono tracking-tight text-ink-3">
                                 {model.name}
+                              </span>
+                              <span className="text-[10.5px] tracking-tight text-ink-3">
+                                via {chrome.sub}
                               </span>
                             </div>
                             <span

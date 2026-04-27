@@ -2,16 +2,28 @@ import { expect, type APIRequestContext } from "@playwright/test";
 import type { AiModelResponse } from "@/features/ai-models/schemas";
 
 export const SEED_MODELS = [
-  { name: "gemini-2.5-flash", provider: "gemini" as const, isFree: true },
+  {
+    name: "gemini-2.5-flash",
+    provider: "gemini" as const,
+    company: "google" as const,
+    isFree: true,
+  },
   {
     name: "llama-3.3-70b-versatile",
     provider: "groq" as const,
+    company: "meta" as const,
     isFree: true,
   },
-  { name: "mistral-small-latest", provider: "mistral" as const, isFree: true },
+  {
+    name: "mistral-small-latest",
+    provider: "mistral" as const,
+    company: "mistralai" as const,
+    isFree: true,
+  },
   {
     name: "openai/gpt-oss-120b:free",
     provider: "openrouter" as const,
+    company: "openai" as const,
     isFree: true,
   },
 ];

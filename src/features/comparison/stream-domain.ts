@@ -70,6 +70,7 @@ async function* runStream(
   const adapterSelections: AdapterSelection[] = selections.map((s) => ({
     provider: s.provider,
     name: s.name,
+    company: s.company,
     isFree: s.isFree,
   }));
   const adapters = buildAdapters(adapterSelections);
@@ -85,7 +86,12 @@ async function* runStream(
       prompt: input.prompt,
       createdAt: createdAt.toISOString(),
       selections: selections.map((s) => ({
-        aiModel: { name: s.name, provider: s.provider, isFree: s.isFree },
+        aiModel: {
+          name: s.name,
+          provider: s.provider,
+          company: s.company,
+          isFree: s.isFree,
+        },
       })),
     },
   };
@@ -117,6 +123,7 @@ async function* runStream(
     const aiModel: AiModel = {
       name: selection.name,
       provider: selection.provider,
+      company: selection.company,
       isFree: selection.isFree,
     };
 

@@ -1,19 +1,49 @@
 import { z } from "@/openapi/zod";
 import { registry } from "@/openapi/registry";
 
+export const PROVIDERS = [
+  "gemini",
+  "mistral",
+  "groq",
+  "openrouter",
+  "anthropic",
+  "openai",
+  "google",
+  "meta",
+  "deepseek",
+  "xai",
+  "qwen",
+] as const;
+
 export const ProviderIdSchema = registry.register(
   "ProviderId",
-  z
-    .enum(["gemini", "mistral", "groq", "openrouter"])
-    .openapi({ example: "gemini" }),
+  z.enum(PROVIDERS).openapi({ example: "gemini" }),
 );
 export type ProviderId = z.infer<typeof ProviderIdSchema>;
+
+export const COMPANIES = [
+  "anthropic",
+  "openai",
+  "google",
+  "meta",
+  "mistralai",
+  "deepseek",
+  "xai",
+  "qwen",
+] as const;
+
+export const CompanyIdSchema = registry.register(
+  "CompanyId",
+  z.enum(COMPANIES).openapi({ example: "anthropic" }),
+);
+export type CompanyId = z.infer<typeof CompanyIdSchema>;
 
 export const AiModelSchema = registry.register(
   "AiModel",
   z.object({
     name: z.string().openapi({ example: "gemini-2.5-flash" }),
     provider: ProviderIdSchema,
+    company: CompanyIdSchema,
     isFree: z.boolean().openapi({ example: true }),
   }),
 );
@@ -30,6 +60,7 @@ export const CreateAiModelRequestSchema = registry.register(
       .max(100)
       .openapi({ example: "gemini-2.5-flash" }),
     provider: ProviderIdSchema,
+    company: CompanyIdSchema,
     isFree: z.boolean().default(false),
   }),
 );
@@ -41,6 +72,7 @@ export const AiModelResponseSchema = registry.register(
     id: z.uuid(),
     name: z.string(),
     provider: ProviderIdSchema,
+    company: CompanyIdSchema,
     isFree: z.boolean(),
   }),
 );
@@ -50,6 +82,7 @@ export const ListAiModelsQuerySchema = registry.register(
   "ListAiModelsQuery",
   z.object({
     provider: ProviderIdSchema.optional(),
+    company: CompanyIdSchema.optional(),
     isFree: z
       .enum(["true", "false"])
       .transform((value) => value === "true")

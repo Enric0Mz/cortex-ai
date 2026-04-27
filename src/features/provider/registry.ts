@@ -1,5 +1,5 @@
 import { env } from "@/lib/env";
-import type { ProviderId } from "@/features/ai-models/schemas";
+import type { CompanyId, ProviderId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter } from "./types";
 import { geminiAdapter } from "./adapters/gemini";
 import { groqAdapter } from "./adapters/groq";
@@ -10,6 +10,7 @@ import { fakeAdapter } from "./adapters/fake";
 export type AdapterSelection = {
   provider: ProviderId;
   name: string;
+  company: CompanyId;
   isFree: boolean;
 };
 
@@ -17,28 +18,34 @@ export function buildAdapters(
   selections: AdapterSelection[],
 ): ProviderAdapter[] {
   if (process.env.USE_FAKE_PROVIDERS === "true") {
-    return selections.map((s) => fakeAdapter(s.provider, s.name, s.isFree));
+    return selections.map((s) =>
+      fakeAdapter(s.provider, s.name, s.company, s.isFree),
+    );
   }
 
   const adapters: ProviderAdapter[] = [];
-  for (const { provider, name, isFree } of selections) {
+  for (const { provider, name, company, isFree } of selections) {
     switch (provider) {
       case "gemini":
         if (env.GEMINI_API_KEY)
-          adapters.push(geminiAdapter(env.GEMINI_API_KEY, name, isFree));
+          adapters.push(
+            geminiAdapter(env.GEMINI_API_KEY, name, company, isFree),
+          );
         break;
       case "groq":
         if (env.GROQ_API_KEY)
-          adapters.push(groqAdapter(env.GROQ_API_KEY, name, isFree));
+          adapters.push(groqAdapter(env.GROQ_API_KEY, name, company, isFree));
         break;
       case "mistral":
         if (env.MISTRAL_API_KEY)
-          adapters.push(mistralAdapter(env.MISTRAL_API_KEY, name, isFree));
+          adapters.push(
+            mistralAdapter(env.MISTRAL_API_KEY, name, company, isFree),
+          );
         break;
       case "openrouter":
         if (env.OPENROUTER_API_KEY)
           adapters.push(
-            openrouterAdapter(env.OPENROUTER_API_KEY, name, isFree),
+            openrouterAdapter(env.OPENROUTER_API_KEY, name, company, isFree),
           );
         break;
     }

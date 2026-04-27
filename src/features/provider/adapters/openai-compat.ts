@@ -1,7 +1,7 @@
 import { ProviderError } from "@/lib/errors";
 import { tryCatch } from "@/lib/result";
 import type { ProviderResult } from "@/features/comparison/schemas";
-import type { ProviderId } from "@/features/ai-models/schemas";
+import type { CompanyId, ProviderId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter, StreamYield } from "../types";
 import { parseSSELines } from "../lib/sse";
 
@@ -11,6 +11,7 @@ interface OpenAICompatConfig {
   apiKey: string;
   model: string;
   modelProvider: ProviderId;
+  company: CompanyId;
   isFree: boolean;
   extraHeaders?: Record<string, string>;
 }
@@ -72,6 +73,7 @@ export function openAIChatAdapter(config: OpenAICompatConfig): ProviderAdapter {
             aiModel: {
               name: config.model,
               provider: config.modelProvider,
+              company: config.company,
               isFree: config.isFree,
             },
             content,
@@ -164,6 +166,7 @@ async function* openAIChatStream(
       aiModel: {
         name: config.model,
         provider: config.modelProvider,
+        company: config.company,
         isFree: config.isFree,
       },
       content: accumulated,

@@ -5,12 +5,13 @@ import {
   type CreateComparisonRequest,
   type ProviderResult,
 } from "@/features/comparison/schemas";
-import { ProviderId } from "@/features/ai-models/schemas";
+import { CompanyId, ProviderId } from "@/features/ai-models/schemas";
 
 export type ModelSelection = {
   id: string;
   name: string;
   provider: ProviderId;
+  company: CompanyId;
   isFree: boolean;
 };
 
@@ -21,12 +22,19 @@ export async function FindModelsByIds(
     async () => {
       const rows = await prisma.aiModel.findMany({
         where: { id: { in: ids } },
-        select: { id: true, name: true, provider: true, isFree: true },
+        select: {
+          id: true,
+          name: true,
+          provider: true,
+          company: true,
+          isFree: true,
+        },
       });
       return rows.map((r) => ({
         id: r.id,
         name: r.name,
         provider: r.provider as ProviderId,
+        company: r.company as CompanyId,
         isFree: r.isFree,
       }));
     },

@@ -1,9 +1,11 @@
+import type { CompanyId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter } from "../types";
 import { openAIChatAdapter } from "./openai-compat";
 
 export function openrouterAdapter(
   apiKey: string,
   model: string,
+  company: CompanyId,
   isFree: boolean,
 ): ProviderAdapter {
   return openAIChatAdapter({
@@ -12,6 +14,7 @@ export function openrouterAdapter(
     apiKey,
     model,
     modelProvider: "openrouter",
+    company,
     isFree,
     extraHeaders: {
       "HTTP-Referer": "https://cortex-ai.local",

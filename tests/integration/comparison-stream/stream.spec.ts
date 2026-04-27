@@ -41,6 +41,7 @@ test.describe("POST /api/v1/comparisons/stream", () => {
           {
             name: `openai/gpt-4o-${suffix}`,
             provider: "openrouter",
+            company: "openai",
             isFree: false,
           },
         ],
