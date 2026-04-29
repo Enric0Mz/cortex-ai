@@ -1,5 +1,6 @@
 import { PROVIDER_TIMEOUT_MS } from "@/lib/constants";
 import { ServiceUnavailableError, ValidationError } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 import { err, type Result } from "@/lib/result";
 import {
   type ComparisonResponseItem,
@@ -50,10 +51,32 @@ export async function runComparison(
   const adapters = buildAdapters(selections);
   const settled = await Promise.all(
     adapters.map(async (adapter) => {
+      const callLogger = logger.child({
+        provider: adapter.id,
+        model: adapter.model,
+        comparisonId,
+      });
       const signal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
       const started = Date.now();
+      callLogger.info("provider.call.start");
       const result = await adapter.generate(input.prompt, signal);
-      return { adapter, result, fallbackLatency: Date.now() - started };
+      const latencyMs = Date.now() - started;
+      if (result.ok) {
+        callLogger.info(
+          {
+            latencyMs,
+            inputTokens: result.value.inputTokens,
+            outputTokens: result.value.outputTokens,
+          },
+          "provider.call.ok",
+        );
+      } else {
+        callLogger.warn(
+          { latencyMs, err: result.error },
+          "provider.call.failed",
+        );
+      }
+      return { adapter, result, fallbackLatency: latencyMs };
     }),
   );
 
