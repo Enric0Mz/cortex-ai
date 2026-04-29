@@ -70,7 +70,7 @@ export function ProductPreview() {
             <span className="h-3 w-3 rounded-full bg-[#28c840]" />
           </div>
           <div className="mx-auto hidden rounded-[var(--radius-md)] border border-[color:var(--border)] bg-[color:var(--bg)] px-3 py-1 font-mono text-[11.5px] text-ink-3 xs:block">
-            llmap.app/compare
+            cortexai.app/compare
           </div>
           <span aria-hidden="true" className="w-[66px] xs:block hidden" />
         </div>

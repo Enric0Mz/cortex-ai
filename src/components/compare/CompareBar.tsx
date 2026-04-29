@@ -21,14 +21,14 @@ export function CompareBar({
       <div className="mx-auto grid h-full max-w-[1400px] grid-cols-[auto_1fr_auto] items-center gap-4 px-5">
         <Link
           href="/"
-          aria-label="LLMap — início"
+          aria-label="CortexAI — início"
           className="flex items-center gap-2"
         >
           <span className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px] bg-[color:var(--ink)]">
             <CompareMarkIcon />
           </span>
           <span className="text-[14px] font-semibold tracking-[-0.015em] sm:inline hidden">
-            LLMap
+            CortexAI
           </span>
         </Link>
 

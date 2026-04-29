@@ -29,7 +29,7 @@ export default function ComparePage() {
   return (
     <>
       <Head>
-        <title>LLMap — Comparação</title>
+        <title>CortexAI — Comparação</title>
         <meta
           name="description"
           content="Compare respostas de múltiplos modelos de IA lado a lado."

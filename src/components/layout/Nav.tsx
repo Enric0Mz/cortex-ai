@@ -13,12 +13,12 @@ export function Nav() {
       <div className="mx-auto grid h-16 max-w-[1200px] grid-cols-[auto_1fr_auto] items-center gap-6 px-6 md:grid-cols-[1fr_auto_1fr] md:px-10">
         <a
           href="#"
-          aria-label="LLMap — início"
+          aria-label="CortexAI — início"
           className="flex items-center gap-2.5 text-ink"
         >
           <BrandMark />
           <span className="font-sans text-[17px] font-semibold tracking-[-0.02em]">
-            LLMap
+            CortexAI
           </span>
         </a>
 
