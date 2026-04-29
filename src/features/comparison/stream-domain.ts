@@ -3,6 +3,7 @@ import {
   ValidationError,
   ProviderError,
 } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 import { err, ok, type Result } from "@/lib/result";
 import type { AiModel } from "@/features/ai-models/schemas";
 import type {
@@ -108,6 +109,14 @@ async function* runStream(
     const selection = adapterToSelection.get(keyOf(adapter.id, adapter.model));
     if (!selection) continue;
     active++;
+    logger.info(
+      {
+        provider: selection.provider,
+        model: selection.name,
+        comparisonId,
+      },
+      "provider.call.stream_start",
+    );
     void pump(adapter.streamGenerate(input.prompt, signal), selection, queue);
   }
 
@@ -133,6 +142,17 @@ async function* runStream(
         data: { aiModel, text: chunk.text },
       };
     } else if (chunk.type === "done") {
+      logger.info(
+        {
+          provider: selection.provider,
+          model: selection.name,
+          comparisonId,
+          latencyMs: chunk.result.latencyMs,
+          inputTokens: chunk.result.inputTokens,
+          outputTokens: chunk.result.outputTokens,
+        },
+        "provider.call.ok",
+      );
       const persisted = signal.aborted
         ? null
         : await CreateOneComparisonResponse(
@@ -149,6 +169,15 @@ async function* runStream(
         data: { aiModel, response },
       };
     } else {
+      logger.warn(
+        {
+          provider: selection.provider,
+          model: selection.name,
+          comparisonId,
+          err: chunk.error,
+        },
+        "provider.call.failed",
+      );
       yield {
         event: "provider.failed",
         data: {

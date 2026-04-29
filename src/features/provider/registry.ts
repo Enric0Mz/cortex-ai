@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 import type { CompanyId, ProviderId } from "@/features/ai-models/schemas";
 import type { ProviderAdapter } from "./types";
 import { geminiAdapter } from "./adapters/gemini";
@@ -31,29 +32,33 @@ export function buildAdapters(
           adapters.push(
             geminiAdapter(env.GEMINI_API_KEY, name, company, isFree),
           );
+        else logger.warn({ provider, model: name }, "provider.missing_api_key");
         break;
       case "groq":
         if (env.GROQ_API_KEY)
           adapters.push(groqAdapter(env.GROQ_API_KEY, name, company, isFree));
+        else logger.warn({ provider, model: name }, "provider.missing_api_key");
         break;
       case "mistral":
         if (env.MISTRAL_API_KEY)
           adapters.push(
             mistralAdapter(env.MISTRAL_API_KEY, name, company, isFree),
           );
+        else logger.warn({ provider, model: name }, "provider.missing_api_key");
         break;
       case "openrouter":
         if (env.OPENROUTER_API_KEY)
           adapters.push(
             openrouterAdapter(env.OPENROUTER_API_KEY, name, company, isFree),
           );
+        else logger.warn({ provider, model: name }, "provider.missing_api_key");
         break;
     }
   }
 
   if (adapters.length === 0) {
-    console.warn(
-      "[provider] no API keys configured for the selected models — comparison will return no responses",
+    logger.warn(
+      "no API keys configured for the selected models — comparison will return no responses",
     );
   }
   return adapters;
