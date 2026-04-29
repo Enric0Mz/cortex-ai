@@ -65,8 +65,8 @@ export function openAIChatAdapter(config: OpenAICompatConfig): ProviderAdapter {
 
           const data = (await response.json()) as OpenAIChatResponse;
           const content = data.choices?.[0]?.message?.content;
-          if (typeof content !== "string") {
-            throw new Error("empty response from provider");
+          if (typeof content !== "string" || content.length === 0) {
+            throw new Error("provider returned no content");
           }
 
           return {
@@ -156,6 +156,14 @@ async function* openAIChatStream(
         cause instanceof Error ? cause.message : String(cause),
         cause,
       ),
+    };
+    return;
+  }
+
+  if (accumulated.length === 0) {
+    yield {
+      type: "error",
+      error: new ProviderError(config.id, "provider returned no content"),
     };
     return;
   }
