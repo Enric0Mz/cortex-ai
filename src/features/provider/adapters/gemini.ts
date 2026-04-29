@@ -55,8 +55,8 @@ export function geminiAdapter(
 
           const data = (await response.json()) as GeminiResponse;
           const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (typeof content !== "string") {
-            throw new Error("empty response from provider");
+          if (typeof content !== "string" || content.length === 0) {
+            throw new Error("provider returned no content");
           }
 
           return {
@@ -144,6 +144,14 @@ async function* geminiStream(
         cause instanceof Error ? cause.message : String(cause),
         cause,
       ),
+    };
+    return;
+  }
+
+  if (accumulated.length === 0) {
+    yield {
+      type: "error",
+      error: new ProviderError("gemini", "provider returned no content"),
     };
     return;
   }
