@@ -30,6 +30,7 @@ export const COMPANIES = [
   "deepseek",
   "xai",
   "qwen",
+  "groq",
 ] as const;
 
 export const CompanyIdSchema = registry.register(

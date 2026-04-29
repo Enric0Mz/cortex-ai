@@ -23,4 +23,5 @@ export const COMPANY_LABELS: Record<CompanyId, string> = {
   deepseek: "DeepSeek",
   xai: "xAI",
   qwen: "Qwen",
+  groq: "Groq",
 };
