@@ -10,6 +10,7 @@ export const COMPANY_COLORS: Record<CompanyId, string> = {
   deepseek: "#5b6cff",
   xai: "#1a1410",
   qwen: "#7c5cbf",
+  groq: "#f55036",
 };
 
 export type ProviderChrome = {
