@@ -6,7 +6,7 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>LLMap — A melhor IA para cada tarefa</title>
+        <title>CortexAI — A melhor IA para cada tarefa</title>
         <meta
           name="description"
           content="Compare respostas de múltiplos modelos ao mesmo tempo e descubra a melhor IA para cada tarefa."
