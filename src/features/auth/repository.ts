@@ -8,6 +8,8 @@ type UpsertInput = {
   email: string;
   name: string | null;
   avatarUrl: string | null;
+  authProvider: "google" | "email";
+  emailConfirmedAt: Date | null;
 };
 
 export async function upsertUserFromAuth(
@@ -21,13 +23,15 @@ export async function upsertUserFromAuth(
           email: input.email,
           name: input.name,
           avatarUrl: input.avatarUrl,
+          emailConfirmedAt: input.emailConfirmedAt,
         },
         create: {
           id: input.id,
           email: input.email,
           name: input.name,
           avatarUrl: input.avatarUrl,
-          authProvider: "google",
+          authProvider: input.authProvider,
+          emailConfirmedAt: input.emailConfirmedAt,
         },
         select: {
           id: true,

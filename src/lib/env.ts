@@ -10,4 +10,6 @@ export const env = {
   NEXT_PUBLIC_APP_URL:
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   LOG_LEVEL: process.env.LOG_LEVEL,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM ?? "Cortex AI <noreply@cortex.local>",
 };

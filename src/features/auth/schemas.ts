@@ -27,3 +27,32 @@ export const CurrentUserSchema = registry.register(
   }),
 );
 export type CurrentUser = z.infer<typeof CurrentUserSchema>;
+
+export const SignUpRequestSchema = registry.register(
+  "SignUpRequest",
+  z.object({
+    email: z.email(),
+    password: z.string().min(8),
+    name: z.string().min(1).optional(),
+  }),
+);
+export type SignUpRequest = z.infer<typeof SignUpRequestSchema>;
+
+export const SignUpResponseSchema = registry.register(
+  "SignUpResponse",
+  z.object({
+    id: z.uuid(),
+    email: z.string(),
+    emailConfirmationRequired: z.boolean(),
+  }),
+);
+export type SignUpResponse = z.infer<typeof SignUpResponseSchema>;
+
+export const PasswordSignInRequestSchema = registry.register(
+  "PasswordSignInRequest",
+  z.object({
+    email: z.email(),
+    password: z.string().min(1),
+  }),
+);
+export type PasswordSignInRequest = z.infer<typeof PasswordSignInRequestSchema>;

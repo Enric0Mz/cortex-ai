@@ -2,8 +2,11 @@ import { registry } from "@/openapi/registry";
 import { ErrorResponseSchema } from "@/openapi/common";
 import {
   CurrentUserSchema,
+  PasswordSignInRequestSchema,
   SignInRequestSchema,
   SignInResponseSchema,
+  SignUpRequestSchema,
+  SignUpResponseSchema,
 } from "@/features/auth/schemas";
 
 registry.registerComponent("securitySchemes", "cookieAuth", {
@@ -121,6 +124,116 @@ registry.registerPath({
     },
     405: {
       description: "Method not allowed.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    503: {
+      description: "Auth or database unavailable.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/v1/auth/signup",
+  summary: "Register with email + password",
+  description:
+    "Creates an unconfirmed user and sends a confirmation email via Resend. The user must click the link before they can sign in.",
+  tags: ["Auth"],
+  request: {
+    body: {
+      required: true,
+      content: {
+        "application/json": { schema: SignUpRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "User created; confirmation email dispatched.",
+      content: {
+        "application/json": { schema: SignUpResponseSchema },
+      },
+    },
+    400: {
+      description: "Invalid email or weak password.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    405: {
+      description: "Method not allowed.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    409: {
+      description: "Email already registered.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    429: {
+      description: "Too many requests.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    503: {
+      description: "Auth or email provider unavailable.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/v1/auth/signin/password",
+  summary: "Sign in with email + password",
+  description:
+    "Exchanges email + password for a session. Sets session cookies on success and returns the current user. Requires the user to have confirmed their email.",
+  tags: ["Auth"],
+  request: {
+    body: {
+      required: true,
+      content: {
+        "application/json": { schema: PasswordSignInRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Authenticated; session cookies set.",
+      content: {
+        "application/json": { schema: CurrentUserSchema },
+      },
+    },
+    400: {
+      description: "Invalid request body.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    401: {
+      description: "Invalid credentials or unconfirmed email.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    405: {
+      description: "Method not allowed.",
+      content: {
+        "application/json": { schema: ErrorResponseSchema },
+      },
+    },
+    429: {
+      description: "Too many requests.",
       content: {
         "application/json": { schema: ErrorResponseSchema },
       },
