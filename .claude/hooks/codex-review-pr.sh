@@ -32,8 +32,10 @@ fi
 PROJECT_DIR=$(printf '%s' "$INPUT" | jq -r '.cwd // empty')
 PROJECT_DIR=${PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-$(pwd)}}
 
-mkdir -p "$PROJECT_DIR/.codex"
-LOG="$PROJECT_DIR/.codex/pr-review.log"
+PR_NUMBER=$(printf '%s' "$PR_URL" | grep -Eo '[0-9]+$')
+
+mkdir -p "$PROJECT_DIR/.codex/pr-reviews"
+LOG="$PROJECT_DIR/.codex/pr-reviews/pr-${PR_NUMBER}.log"
 STAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 cd "$PROJECT_DIR"
@@ -54,9 +56,10 @@ fi
   REVIEW_FILE=$(mktemp)
   trap 'rm -f "$REVIEW_FILE"' EXIT
 
-  REVIEW_PROMPT="Review this PR's diff against develop. Anchor on AGENTS.md (three-layer architecture: index → domain → repository, Result/tryCatch error handling, Zod schemas via @/openapi/zod). Flag: layering violations, missing OpenAPI registration, raw try/catch in feature code, hand-written interfaces duplicating Zod schemas, and security issues. Be concise and actionable — bullet findings with file:line references."
-
-  if codex review --base develop "$REVIEW_PROMPT" >"$REVIEW_FILE" 2>>"$LOG"; then
+  # codex review treats --base as mutually exclusive with a custom PROMPT.
+  # The built-in review prompt is used; codex reads AGENTS.md automatically
+  # for project conventions.
+  if codex review --base develop >"$REVIEW_FILE" 2>>"$LOG"; then
     if [[ -s "$REVIEW_FILE" ]]; then
       {
         printf '## Codex review\n\n'
