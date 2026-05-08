@@ -238,9 +238,7 @@ test.describe("Email + password auth", () => {
     const beforeBody = (await before.json()) as {
       emails: Array<{ to: string }>;
     };
-    const beforeCount = beforeBody.emails.filter(
-      (e) => e.to === email,
-    ).length;
+    const beforeCount = beforeBody.emails.filter((e) => e.to === email).length;
 
     const signup = await request.post("/api/v1/auth/signup", {
       data: { email, password: "hunter22hunter" },
