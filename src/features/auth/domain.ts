@@ -11,7 +11,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { sendConfirmationEmail } from "@/lib/email/send-confirmation";
 import type { CurrentUser, SignInResponse, SignUpResponse } from "./schemas";
-import { findUserById, upsertUserFromAuth } from "./repository";
+import { deleteUserById, findUserById, upsertUserFromAuth } from "./repository";
 
 export function isSafeRedirect(next: string | undefined): boolean {
   if (!next) return true;
@@ -244,6 +244,16 @@ export async function signUpWithPassword(
   }
   const user = createdRes.data.user;
 
+  async function rollback(dbRowExists: boolean): Promise<void> {
+    if (dbRowExists) {
+      await deleteUserById(user.id);
+    }
+    await tryCatch(
+      async () => admin.auth.admin.deleteUser(user.id),
+      (cause) => new ServiceUnavailableError("auth", cause),
+    );
+  }
+
   const upserted = await upsertUserFromAuth({
     id: user.id,
     email: input.email,
@@ -252,7 +262,10 @@ export async function signUpWithPassword(
     authProvider: "email",
     emailConfirmedAt: parseConfirmedAt(user.email_confirmed_at),
   });
-  if (!upserted.ok) return err(upserted.error);
+  if (!upserted.ok) {
+    await rollback(false);
+    return err(upserted.error);
+  }
 
   const linkResult = await tryCatch(
     async () =>
@@ -263,10 +276,14 @@ export async function signUpWithPassword(
       }),
     (cause) => new ServiceUnavailableError("auth", cause),
   );
-  if (!linkResult.ok) return err(linkResult.error);
+  if (!linkResult.ok) {
+    await rollback(true);
+    return err(linkResult.error);
+  }
 
   const { data: linkData, error: linkErr } = linkResult.value;
   if (linkErr || !linkData.properties?.hashed_token) {
+    await rollback(true);
     return err(new ServiceUnavailableError("auth"));
   }
 
@@ -279,7 +296,10 @@ export async function signUpWithPassword(
     name: input.name ?? null,
     confirmationUrl: callbackUrl.toString(),
   });
-  if (!send.ok) return err(send.error);
+  if (!send.ok) {
+    await rollback(true);
+    return err(send.error);
+  }
 
   return ok({
     id: user.id,

@@ -23,7 +23,12 @@ export default defineConfig({
     url: `${baseURL}/api/v1/health`,
     reuseExistingServer: false,
     timeout: 60_000,
-    env: { ...testEnv, PORT: "3001", NODE_ENV: "test" },
+    env: {
+      ...testEnv,
+      PORT: "3001",
+      NODE_ENV: "test",
+      EMAIL_CAPTURE: "true",
+    },
     stdout: "pipe",
     stderr: "pipe",
   },

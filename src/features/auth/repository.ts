@@ -46,6 +46,17 @@ export async function upsertUserFromAuth(
   );
 }
 
+export async function deleteUserById(
+  id: string,
+): Promise<Result<void, ServiceUnavailableError>> {
+  return tryCatch(
+    async () => {
+      await prisma.user.delete({ where: { id } });
+    },
+    (cause) => new ServiceUnavailableError("database", cause),
+  );
+}
+
 export async function findUserById(
   id: string,
 ): Promise<Result<CurrentUser | null, ServiceUnavailableError>> {

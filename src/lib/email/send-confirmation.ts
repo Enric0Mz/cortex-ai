@@ -1,6 +1,6 @@
 import { render } from "@react-email/render";
 import { ServiceUnavailableError } from "@/lib/errors";
-import { tryCatch, ok, type Result } from "@/lib/result";
+import { tryCatch, ok, err, type Result } from "@/lib/result";
 import { env } from "@/lib/env";
 import { getResend, isEmailEnabled } from "./resend";
 import { ConfirmEmail } from "./templates/confirm-email";
@@ -33,7 +33,7 @@ const SUBJECT = "Confirm your Cortex AI account";
 export async function sendConfirmationEmail(
   args: Args,
 ): Promise<Result<void, ServiceUnavailableError>> {
-  if (!isEmailEnabled()) {
+  if (env.EMAIL_CAPTURE) {
     captured.push({
       to: args.to,
       subject: SUBJECT,
@@ -41,6 +41,9 @@ export async function sendConfirmationEmail(
       sentAt: new Date().toISOString(),
     });
     return ok(undefined);
+  }
+  if (!isEmailEnabled()) {
+    return err(new ServiceUnavailableError("email"));
   }
 
   return tryCatch(
