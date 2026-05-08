@@ -85,6 +85,8 @@ export default async function handler(
     email,
     name,
     avatarUrl: null,
+    authProvider: "google",
+    emailConfirmedAt: new Date(),
   });
   if (!upsert.ok) {
     res.status(upsert.error.statusCode).json(toErrorResponse(upsert.error));

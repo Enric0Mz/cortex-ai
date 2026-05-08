@@ -1,7 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { AppError, ValidationError } from "@/lib/errors";
 import { toErrorResponse } from "@/lib/http";
-import { exchangeCodeForSession, isSafeRedirect } from "@/features/auth/domain";
+import {
+  exchangeCodeForSession,
+  isSafeRedirect,
+  isVerifyOtpType,
+  verifyEmailToken,
+} from "@/features/auth/domain";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 function clientIp(req: NextApiRequest): string {
@@ -31,11 +36,17 @@ export default async function handler(
 
   const rawCode = req.query.code;
   const code = Array.isArray(rawCode) ? rawCode[0] : rawCode;
+  const rawTokenHash = req.query.token_hash;
+  const tokenHash = Array.isArray(rawTokenHash)
+    ? rawTokenHash[0]
+    : rawTokenHash;
+  const rawType = req.query.type;
+  const type = Array.isArray(rawType) ? rawType[0] : rawType;
   const rawNext = req.query.next;
   const next = Array.isArray(rawNext) ? rawNext[0] : rawNext;
 
-  if (!code) {
-    const error = new ValidationError("code is required");
+  if (!code && !tokenHash) {
+    const error = new ValidationError("code or token_hash is required");
     res.status(error.statusCode).json(toErrorResponse(error));
     return;
   }
@@ -46,7 +57,22 @@ export default async function handler(
     return;
   }
 
-  const result = await exchangeCodeForSession(req, res, code);
+  if (tokenHash) {
+    if (!type || !isVerifyOtpType(type)) {
+      const error = new ValidationError("type is required");
+      res.status(error.statusCode).json(toErrorResponse(error));
+      return;
+    }
+    const result = await verifyEmailToken(req, res, tokenHash, type);
+    if (!result.ok) {
+      res.status(result.error.statusCode).json(toErrorResponse(result.error));
+      return;
+    }
+    res.redirect(302, next ?? "/");
+    return;
+  }
+
+  const result = await exchangeCodeForSession(req, res, code!);
   if (!result.ok) {
     res.status(result.error.statusCode).json(toErrorResponse(result.error));
     return;
