@@ -11,4 +11,11 @@ export const PROVIDER_MODELS = {
   openrouter: "openai/gpt-oss-120b:free",
 } as const;
 
+export const PROVIDER_MODEL_PROVIDERS = {
+  gemini: "google",
+  groq: "meta",
+  mistral: "mistral",
+  openrouter: "openai",
+} as const;
+
 export const PROVIDER_TIMEOUT_MS = 30_000;

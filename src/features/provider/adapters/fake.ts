@@ -1,4 +1,4 @@
-import { PROVIDER_MODELS } from "@/lib/constants";
+import { PROVIDER_MODELS, PROVIDER_MODEL_PROVIDERS } from "@/lib/constants";
 import { ProviderError } from "@/lib/errors";
 import { ok, err } from "@/lib/result";
 import type { ProviderId } from "@/features/comparison/schemas";
@@ -48,7 +48,7 @@ export function fakeAdapter(id: ProviderId): ProviderAdapter {
 
       return ok({
         provider: id,
-        aiModel: { name: model, provider: id },
+        aiModel: { name: model, provider: PROVIDER_MODEL_PROVIDERS[id] },
         content: `[fake:${id}] ${prompt}`,
         inputTokens: prompt.length,
         outputTokens: prompt.length + id.length,
